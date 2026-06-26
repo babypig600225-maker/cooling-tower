@@ -188,7 +188,7 @@ body{font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;background
 // ══════════════════════════════════════
 //  ⚙️  設定：部署後填入 Apps Script 網址
 // ══════════════════════════════════════
-const API_URL = 'YOUR_APPS_SCRIPT_URL';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxlo0fBvVVMHACXmLWlg3qcacVxR7Ggq4TUqJWVT9U5CakU_1KF489EgkkUCdKkHoGnDw/exec';
 
 // ══════════════════════════════════════
 //  參數定義
@@ -266,15 +266,26 @@ async function fetchData() {
     setStatus('讀取資料中…');
     const res = await jsonp({ action:'read' });
     if (res.status !== 'ok') throw new Error(res.message);
-    // 整理資料：日期格式統一
-    cachedData = res.data.map(r => ({
-      date  : String(r['取樣日期']).slice(0,10),
-      sample: String(r['樣品名稱']),
-      param : String(r['分析項目']),
-      value : isNaN(parseFloat(r['檢測值'])) ? null : parseFloat(r['檢測值']),
-      control: String(r['控制基準']),
-      status: String(r['狀態'])
-    })).filter(r=>r.date && r.sample && r.param);
+    // 整理資料：修正 Google Sheets 回傳 UTC 日期問題
+    cachedData = res.data.map(r => {
+      let dateStr = String(r['取樣日期']);
+      if (dateStr.includes('T')) {
+        // Google Sheets 回傳 "2025-10-06T16:00:00.000Z"，加8小時換算台灣時間
+        const d = new Date(dateStr);
+        const tw = new Date(d.getTime() + 8 * 60 * 60 * 1000);
+        dateStr = tw.toISOString().slice(0, 10);
+      } else {
+        dateStr = dateStr.slice(0, 10);
+      }
+      return {
+        date  : dateStr,
+        sample: String(r['樣品名稱']),
+        param : String(r['分析項目']),
+        value : isNaN(parseFloat(r['檢測值'])) ? null : parseFloat(r['檢測值']),
+        control: String(r['控制基準']),
+        status: String(r['狀態'])
+      };
+    }).filter(r=>r.date && r.sample && r.param);
     setStatus(`已載入 ${cachedData.length} 筆　最後更新 ${new Date().toLocaleTimeString('zh-TW')}`);
     return true;
   } catch(e) {
