@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>冷卻水塔水質管理系統</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;background:#f1f5f9;color:#1a1a2e;min-height:100vh}
+
+/* ── 頂部導覽 ── */
+.topbar{background:#fff;border-bottom:1px solid #e2e8f0;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.topbar h1{font-size:16px;font-weight:700;color:#0f172a}
+.tabs{display:flex;gap:4px}
+.tab{padding:6px 18px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:transparent;color:#64748b;transition:all .15s;font-family:inherit}
+.tab.active{background:#dbeafe;color:#1e40af}
+.tab:hover:not(.active){background:#f1f5f9}
+.status-bar{font-size:11px;color:#94a3b8}
+
+/* ── 頁面 ── */
+.page{display:none;padding:20px 24px}
+.page.active{display:block}
+
+/* ── 通用卡片 ── */
+.card{background:#fff;border-radius:12px;padding:18px 20px;border:1px solid #e2e8f0;margin-bottom:16px}
+.sec-title{font-size:13px;font-weight:600;color:#374151;margin-bottom:12px}
+.btn{padding:7px 16px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:none;font-family:inherit;transition:all .15s}
+.btn-primary{background:#2563eb;color:#fff}.btn-primary:hover{background:#1d4ed8}
+.btn-success{background:#16a34a;color:#fff}.btn-success:hover{background:#15803d}
+.btn-ghost{background:#f1f5f9;color:#475569;border:1px solid #e2e8f0}.btn-ghost:hover{background:#e2e8f0}
+
+/* ── 輸入表單 ── */
+.date-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.date-row label{font-size:13px;font-weight:500;color:#374151}
+.date-row input[type=date]{padding:6px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;font-family:inherit;color:#1a1a2e}
+.entry-table{width:100%;border-collapse:collapse;font-size:12px}
+.entry-table th{background:#f8fafc;padding:7px 10px;font-weight:600;color:#374151;border:1px solid #e2e8f0;white-space:nowrap;text-align:center}
+.entry-table th.lh{text-align:left;min-width:110px}
+.entry-table td{border:1px solid #f1f5f9;padding:3px 5px;vertical-align:middle}
+.entry-table td.param-td{background:#fafafa;font-size:11px;color:#475569;padding:5px 10px;white-space:nowrap}
+.entry-table td.ctrl-td{background:#fafafa;font-size:10px;color:#94a3b8;text-align:center;white-space:nowrap}
+.entry-table td.st-td{text-align:center;font-size:11px;font-weight:500;min-width:62px}
+.s-ok{background:#dcfce7;color:#166534}
+.s-over{background:#fee2e2;color:#991b1b}
+.s-low{background:#fef3c7;color:#92400e}
+.s-na{background:#f8fafc;color:#94a3b8}
+.samp-hd{background:#eff6ff !important;color:#1e40af !important}
+.val-inp{width:78px;padding:4px 6px;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;text-align:center;font-family:inherit}
+.val-inp:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 2px #dbeafe}
+.form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+
+/* ── 歷史列表 ── */
+.hist-item{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:8px;background:#f8fafc;margin-bottom:6px;border:1px solid #e2e8f0}
+.hist-date{font-size:13px;font-weight:600;color:#1e40af}
+.hist-info{font-size:11px;color:#64748b;margin-top:2px}
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600;margin-left:4px}
+.b-ok{background:#dcfce7;color:#166534}
+.b-over{background:#fee2e2;color:#991b1b}
+.b-low{background:#fef3c7;color:#92400e}
+.no-data{text-align:center;color:#94a3b8;padding:24px;font-size:13px}
+
+/* ── 儀表板 ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.kpi{background:#fff;border-radius:10px;padding:14px 18px;border:1px solid #e2e8f0}
+.kpi-label{font-size:11px;color:#64748b;margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase}
+.kpi-val{font-size:28px;font-weight:700;line-height:1}
+.two-col{display:grid;grid-template-columns:240px 1fr;gap:14px;margin-bottom:16px}
+.db-card{background:#fff;border-radius:10px;padding:16px 18px;border:1px solid #e2e8f0}
+.db-title{font-size:11px;font-weight:600;color:#64748b;margin-bottom:12px;letter-spacing:.06em;text-transform:uppercase}
+.controls{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+.controls label{font-size:12px;color:#475569;display:flex;align-items:center;gap:4px;cursor:pointer}
+.controls select{font-size:12px;padding:5px 10px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;cursor:pointer;font-family:inherit}
+.legend{display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap}
+.lg-i{display:flex;align-items:center;gap:5px;font-size:11px;color:#475569}
+.lg-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.stabs{display:flex;gap:8px;margin-bottom:12px}
+.stab{font-size:12px;padding:5px 14px;border:1px solid #cbd5e1;border-radius:20px;cursor:pointer;color:#475569;background:#fff;font-family:inherit;transition:all .15s}
+.stab.active{background:#dbeafe;color:#1e40af;border-color:#93c5fd;font-weight:500}
+.hm-wrap{overflow-x:auto}
+.heatmap{border-collapse:collapse;width:100%;font-size:11px}
+.heatmap th{font-weight:500;color:#64748b;padding:6px 8px;white-space:nowrap;border-bottom:1px solid #e2e8f0;font-size:10px;background:#f8fafc;text-align:right}
+.heatmap th.pc{text-align:left;min-width:110px;position:sticky;left:0;background:#f8fafc;z-index:1}
+.heatmap td{padding:4px 6px;text-align:center;border:1px solid #f1f5f9}
+.hm-ok{background:#dcfce7;color:#166534}
+.hm-ov{background:#fee2e2;color:#991b1b}
+.hm-lo{background:#fef3c7;color:#92400e}
+.hm-na{background:#f8fafc;color:#94a3b8}
+.hm-p{font-size:10px;color:#475569;text-align:left;padding:4px 8px;white-space:nowrap;position:sticky;left:0;background:#fff;border-right:1px solid #e2e8f0}
+.db-subtitle{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.db-subtitle h2{font-size:15px;font-weight:600;color:#0f172a}
+.db-subtitle span{font-size:11px;color:#94a3b8}
+.loading{text-align:center;padding:60px;color:#94a3b8;font-size:14px}
+.spin{display:inline-block;width:20px;height:20px;border:2px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- ── 頂部導覽 ── -->
+<div class="topbar">
+  <h1>🌊 冷卻水塔水質管理系統</h1>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('input')">📝 資料輸入</button>
+    <button class="tab" onclick="switchTab('dashboard')">📊 儀表板</button>
+  </div>
+  <div class="status-bar" id="status-bar">就緒</div>
+</div>
+
+<!-- ══════════ 資料輸入分頁 ══════════ -->
+<div class="page active" id="page-input">
+
+  <div class="card">
+    <div class="sec-title">📅 取樣日期</div>
+    <div class="date-row">
+      <label>選擇日期：</label>
+      <input type="date" id="entry-date">
+      <button class="btn btn-primary" onclick="loadForm()">建立取樣表單</button>
+      <span id="date-hint" style="font-size:12px;color:#64748b"></span>
+    </div>
+  </div>
+
+  <div class="card" id="form-card" style="display:none">
+    <div class="sec-title" id="form-title">📋 填入檢測數值</div>
+    <div style="overflow-x:auto">
+      <table class="entry-table" id="entry-table"></table>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="clearForm()">清空</button>
+      <button class="btn btn-success" onclick="saveEntry()">✅ 儲存此次取樣</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec-title">📋 已輸入取樣紀錄</div>
+    <div id="hist-list"><div class="no-data"><span class="spin"></span>載入資料中…</div></div>
+  </div>
+</div>
+
+<!-- ══════════ 儀表板分頁 ══════════ -->
+<div class="page" id="page-dashboard">
+  <div id="db-loading" class="loading"><span class="spin"></span>載入資料中…</div>
+  <div id="db-content" style="display:none">
+    <div class="db-subtitle">
+      <h2>冷卻水塔水質分析儀表板</h2>
+      <span id="db-sub"></span>
+    </div>
+    <div class="kpi-grid" id="kpi-grid"></div>
+    <div class="two-col">
+      <div class="db-card">
+        <p class="db-title">狀態分布</p>
+        <div style="position:relative;height:160px;margin-bottom:8px"><canvas id="donutChart"></canvas></div>
+        <div id="donut-legend" class="legend" style="justify-content:center"></div>
+      </div>
+      <div class="db-card">
+        <p class="db-title">異常 / 低於標準紀錄</p>
+        <div id="alert-list" style="max-height:230px;overflow-y:auto;font-size:12px"></div>
+      </div>
+    </div>
+    <div class="db-card" style="margin-bottom:16px">
+      <p class="db-title">趨勢分析</p>
+      <div class="controls">
+        <label style="font-weight:600;color:#334155">分析項目</label>
+        <select id="param-sel"></select>
+        <span style="font-size:11px;color:#94a3b8;margin:0 4px">顯示樣品：</span>
+        <label><input type="checkbox" id="cb0" checked> MU(原水)</label>
+        <label><input type="checkbox" id="cb1" checked> 400RT(舊廠)</label>
+        <label><input type="checkbox" id="cb2" checked> 800RT(新廠)</label>
+      </div>
+      <div id="trend-legend" class="legend"></div>
+      <div style="position:relative;height:250px"><canvas id="trendChart"></canvas></div>
+    </div>
+    <div class="db-card">
+      <p class="db-title">各次取樣狀態矩陣</p>
+      <div class="stabs" id="stabs"></div>
+      <div class="legend">
+        <span class="lg-i"><span class="lg-dot" style="background:#4ade80"></span>正常</span>
+        <span class="lg-i"><span class="lg-dot" style="background:#f87171"></span>超標</span>
+        <span class="lg-i"><span class="lg-dot" style="background:#fcd34d"></span>低於標準</span>
+        <span class="lg-i"><span class="lg-dot" style="background:#f1f5f9"></span>無控制基準</span>
+      </div>
+      <div class="hm-wrap" id="hm-wrap"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+//  ⚙️  設定：部署後填入 Apps Script 網址
+// ══════════════════════════════════════
+const API_URL = 'YOUR_APPS_SCRIPT_URL';
+
+// ══════════════════════════════════════
+//  參數定義
+// ══════════════════════════════════════
+const PARAM_DEFS = [
+  { key:'PH值',    ctrl:'8~9.2',   lower:8,   upper:9.2,  mu:true,  rt4:true, rt8:true },
+  { key:'M-鹼性度', ctrl:'<500',    lower:0,   upper:500,  mu:true,  rt4:true, rt8:true },
+  { key:'總硬度',   ctrl:'-',       lower:null,upper:null, mu:true,  rt4:true, rt8:true },
+  { key:'鈣硬度',   ctrl:'<450',    lower:0,   upper:450,  mu:true,  rt4:true, rt8:true },
+  { key:'鎂硬度',   ctrl:'-',       lower:null,upper:null, mu:true,  rt4:true, rt8:true },
+  { key:'氯離子',   ctrl:'<200',    lower:0,   upper:200,  mu:true,  rt4:true, rt8:true },
+  { key:'溶解性鐵', ctrl:'<1',      lower:0,   upper:1,    mu:true,  rt4:true, rt8:true },
+  { key:'導電度',   ctrl:'<1500',   lower:0,   upper:1500, mu:true,  rt4:true, rt8:true },
+  { key:'矽酸鹽',   ctrl:'-',       lower:null,upper:null, mu:true,  rt4:true, rt8:true },
+  { key:'RSI',      ctrl:'4.5~6.5', lower:4.5, upper:6.5,  mu:false, rt4:true, rt8:true },
+];
+const SAMPLES    = ['MU(原水)','400RT(舊廠)','800RT(新廠)'];
+const SAMPLE_KEYS= ['mu','rt4','rt8'];
+const COLORS     = ['#2563eb','#059669','#d97706'];
+const DASH       = [[],[6,3],[3,3]];
+let   cachedData = [];
+let   donutChart, trendChart;
+
+// ══════════════════════════════════════
+//  JSONP 工具
+// ══════════════════════════════════════
+let cbIdx = 0;
+function jsonp(params) {
+  return new Promise((resolve, reject) => {
+    const cb  = 'wq_cb_' + (cbIdx++);
+    const url = API_URL + '?' + Object.entries({ ...params, callback: cb })
+      .map(([k,v]) => `${k}=${encodeURIComponent(v)}`).join('&');
+    const script = document.createElement('script');
+    window[cb] = res => { delete window[cb]; script.remove(); resolve(res); };
+    script.onerror = () => { delete window[cb]; script.remove(); reject(new Error('網路錯誤')); };
+    script.src = url;
+    document.head.appendChild(script);
+    setTimeout(() => { if(window[cb]){ delete window[cb]; script.remove(); reject(new Error('逾時')); } }, 15000);
+  });
+}
+
+// ══════════════════════════════════════
+//  狀態計算
+// ══════════════════════════════════════
+function calcStatus(def, v) {
+  if (v === null || v === '' || def.lower === null) return '-';
+  const n = parseFloat(v);
+  if (isNaN(n)) return '-';
+  if (def.lower !== null && n < def.lower) return '低於標準';
+  if (def.upper !== null && n > def.upper) return '超標';
+  return '正常';
+}
+function statusSpan(def, v) {
+  const s = calcStatus(def, v);
+  const cls = {正常:'s-ok',超標:'s-over','低於標準':'s-low','-':'s-na'}[s] || 's-na';
+  return `<span class="${cls}">${s}</span>`;
+}
+
+// ══════════════════════════════════════
+//  Tab 切換
+// ══════════════════════════════════════
+function switchTab(tab) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+tab).classList.add('active');
+  document.querySelectorAll('.tab')[tab==='input'?0:1].classList.add('active');
+  if (tab === 'dashboard') renderDashboard();
+}
+
+// ══════════════════════════════════════
+//  讀取資料
+// ══════════════════════════════════════
+async function fetchData() {
+  try {
+    setStatus('讀取資料中…');
+    const res = await jsonp({ action:'read' });
+    if (res.status !== 'ok') throw new Error(res.message);
+    // 整理資料：日期格式統一
+    cachedData = res.data.map(r => ({
+      date  : String(r['取樣日期']).slice(0,10),
+      sample: String(r['樣品名稱']),
+      param : String(r['分析項目']),
+      value : isNaN(parseFloat(r['檢測值'])) ? null : parseFloat(r['檢測值']),
+      control: String(r['控制基準']),
+      status: String(r['狀態'])
+    })).filter(r=>r.date && r.sample && r.param);
+    setStatus(`已載入 ${cachedData.length} 筆　最後更新 ${new Date().toLocaleTimeString('zh-TW')}`);
+    return true;
+  } catch(e) {
+    setStatus('⚠️ 載入失敗：'+e.message);
+    return false;
+  }
+}
+function setStatus(msg){ document.getElementById('status-bar').textContent = msg; }
+
+// ══════════════════════════════════════
+//  資料輸入
+// ══════════════════════════════════════
+function loadForm() {
+  const date = document.getElementById('entry-date').value;
+  if (!date) { alert('請先選擇取樣日期'); return; }
+
+  // 確認是否已有此日期資料
+  const exists = cachedData.some(r => r.date === date);
+  document.getElementById('date-hint').textContent = exists ? '⚠️ 此日期已有資料，儲存後將新增於現有資料之後' : '';
+  document.getElementById('form-title').textContent = `📋 ${date} 取樣數值輸入`;
+
+  const tbl = document.getElementById('entry-table');
+  let html = `<thead>
+    <tr>
+      <th class="lh">分析項目</th><th>控制基準</th>
+      ${SAMPLES.map(s=>`<th class="samp-hd" colspan="2">${s}</th>`).join('')}
+    </tr>
+    <tr>
+      <th class="lh"></th><th></th>
+      ${SAMPLES.map(()=>`<th style="background:#f0f9ff;font-size:10px;color:#1e40af">數值</th><th style="background:#f0f9ff;font-size:10px;color:#1e40af">狀態</th>`).join('')}
+    </tr>
+  </thead><tbody>`;
+
+  PARAM_DEFS.forEach(def => {
+    const inS = [def.mu, def.rt4, def.rt8];
+    html += `<tr><td class="param-td">${def.key}</td><td class="ctrl-td">${def.ctrl}</td>`;
+    SAMPLE_KEYS.forEach((sk, si) => {
+      if (!inS[si]) {
+        html += `<td class="hm-na" colspan="2" style="text-align:center">—</td>`;
+      } else {
+        html += `<td style="text-align:center">
+          <input class="val-inp" type="number" step="any"
+            data-sk="${sk}" data-pk="${def.key}"
+            oninput="onInput(this)" placeholder="—">
+        </td>
+        <td class="st-td" id="st_${sk}_${def.key.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'_')}">
+          <span class="s-na">—</span>
+        </td>`;
+      }
+    });
+    html += `</tr>`;
+  });
+  html += '</tbody>';
+  tbl.innerHTML = html;
+  document.getElementById('form-card').style.display = 'block';
+}
+
+function onInput(inp) {
+  const def = PARAM_DEFS.find(p=>p.key===inp.dataset.pk);
+  const sid = `st_${inp.dataset.sk}_${inp.dataset.pk.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'_')}`;
+  const cell = document.getElementById(sid);
+  if (cell) cell.innerHTML = statusSpan(def, inp.value);
+}
+
+function clearForm() {
+  document.querySelectorAll('.val-inp').forEach(i=>i.value='');
+  document.querySelectorAll('.st-td').forEach(c=>c.innerHTML='<span class="s-na">—</span>');
+}
+
+async function saveEntry() {
+  const date = document.getElementById('entry-date').value;
+  if (!date) { alert('請先選擇日期'); return; }
+
+  // 收集所有有值的欄位
+  const rows = [];
+  document.querySelectorAll('.val-inp').forEach(inp => {
+    const v = inp.value.trim();
+    if (v === '' || isNaN(parseFloat(v))) return;
+    const def = PARAM_DEFS.find(p=>p.key===inp.dataset.pk);
+    const sampleName = SAMPLES[SAMPLE_KEYS.indexOf(inp.dataset.sk)];
+    const val = parseFloat(v);
+    const status = calcStatus(def, val);
+    rows.push([date, sampleName, def.key, val, def.ctrl, status]);
+  });
+
+  if (!rows.length) { alert('請至少輸入一筆數值'); return; }
+
+  try {
+    setStatus('儲存中…');
+    const res = await jsonp({
+      action: 'write',
+      rows: JSON.stringify(rows)
+    });
+    if (res.status !== 'ok') throw new Error(res.message);
+    alert(`✅ 已儲存 ${date} 共 ${rows.length} 筆資料`);
+    // 重新讀取
+    await fetchData();
+    renderHistory();
+    document.getElementById('form-card').style.display = 'none';
+  } catch(e) {
+    setStatus('⚠️ 儲存失敗：'+e.message);
+    alert('儲存失敗：'+e.message);
+  }
+}
+
+// ══════════════════════════════════════
+//  歷史列表
+// ══════════════════════════════════════
+function renderHistory() {
+  const el   = document.getElementById('hist-list');
+  const dates = [...new Set(cachedData.map(r=>r.date))].sort((a,b)=>b.localeCompare(a));
+  if (!dates.length) { el.innerHTML='<div class="no-data">尚無取樣紀錄</div>'; return; }
+  el.innerHTML = dates.map(date => {
+    const rows  = cachedData.filter(r=>r.date===date && r.status!=='-');
+    const nOk   = rows.filter(r=>r.status==='正常').length;
+    const nOver = rows.filter(r=>r.status==='超標').length;
+    const nLow  = rows.filter(r=>r.status==='低於標準').length;
+    return `<div class="hist-item">
+      <div>
+        <div class="hist-date">${date}</div>
+        <div class="hist-info">共 ${rows.length} 筆有效檢測
+          <span class="badge b-ok">正常 ${nOk}</span>
+          ${nOver?`<span class="badge b-over">超標 ${nOver}</span>`:''}
+          ${nLow?`<span class="badge b-low">低標 ${nLow}</span>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════
+//  儀表板
+// ══════════════════════════════════════
+async function renderDashboard() {
+  document.getElementById('db-loading').style.display = 'block';
+  document.getElementById('db-content').style.display = 'none';
+
+  if (!cachedData.length) await fetchData();
+
+  const RAW     = cachedData;
+  const DATES   = [...new Set(RAW.map(r=>r.date))].sort();
+  const PARAMS  = [...new Set(RAW.map(r=>r.param))];
+
+  if (!RAW.length) {
+    document.getElementById('db-loading').textContent = '尚無資料';
+    return;
+  }
+  document.getElementById('db-loading').style.display = 'none';
+  document.getElementById('db-content').style.display = 'block';
+
+  document.getElementById('db-sub').textContent =
+    `資料區間：${DATES[0]} ～ ${DATES[DATES.length-1]}　共 ${DATES.length} 次取樣`;
+
+  // KPI
+  const valid = RAW.filter(r=>r.status!=='-');
+  const total=valid.length, nOk=valid.filter(r=>r.status==='正常').length,
+        nOver=valid.filter(r=>r.status==='超標').length, nLow=valid.filter(r=>r.status==='低於標準').length;
+  document.getElementById('kpi-grid').innerHTML=[
+    [`${total} 筆`,'有效檢測總數','#1e40af'],
+    [`${total?((nOk/total)*100).toFixed(1):0}%`,'正常達標率','#065f46'],
+    [`${nOver} 次`,'超標次數','#991b1b'],
+    [`${nLow} 次`,'低於標準','#92400e']
+  ].map(([v,l,c])=>`<div class="kpi"><p class="kpi-label">${l}</p><p class="kpi-val" style="color:${c}">${v}</p></div>`).join('');
+
+  // 圓餅圖
+  if (donutChart) donutChart.destroy();
+  donutChart = new Chart(document.getElementById('donutChart'),{
+    type:'doughnut',
+    data:{labels:['正常','超標','低於標準'],datasets:[{data:[nOk,nOver,nLow],
+      backgroundColor:['#22c55e','#ef4444','#f59e0b'],borderColor:['#16a34a','#dc2626','#d97706'],borderWidth:1.5}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:i=>`${i.label}: ${i.raw}筆 (${total?((i.raw/total)*100).toFixed(1):0}%)`}}},cutout:'62%'}
+  });
+  document.getElementById('donut-legend').innerHTML=
+    `<span class="lg-i"><span class="lg-dot" style="background:#22c55e"></span>正常 ${nOk}</span>
+     <span class="lg-i"><span class="lg-dot" style="background:#ef4444"></span>超標 ${nOver}</span>
+     <span class="lg-i"><span class="lg-dot" style="background:#f59e0b"></span>低於標準 ${nLow}</span>`;
+
+  // 異常列表
+  const alerts=RAW.filter(r=>r.status==='超標'||r.status==='低於標準').sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('alert-list').innerHTML=alerts.length
+    ?alerts.map(r=>{
+      const col=r.status==='超標'?'#991b1b':'#92400e',bg=r.status==='超標'?'#fee2e2':'#fef3c7';
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;margin-bottom:5px;background:${bg};border-radius:7px">
+        <span style="flex:1;font-size:11px">${r.date} <b>${r.sample}</b></span>
+        <span style="font-size:10px;color:#64748b;flex:1;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 4px">${r.param}</span>
+        <span style="font-size:11px;font-weight:600;color:${col};white-space:nowrap">${r.status} (${r.value})</span>
+      </div>`;
+    }).join('')
+    :'<div style="color:#94a3b8;text-align:center;padding:20px">無異常紀錄 🎉</div>';
+
+  // 趨勢圖
+  const sel=document.getElementById('param-sel');
+  sel.innerHTML=PARAMS.map((p,i)=>`<option value="${i}">${p}</option>`).join('');
+  const drawTrend=()=>{
+    const pi=parseInt(sel.value||0),param=PARAMS[pi];
+    const checks=['cb0','cb1','cb2'].map(id=>document.getElementById(id).checked);
+    const datasets=SAMPLES.map((s,si)=>{
+      if(!checks[si])return null;
+      const pts=DATES.map(d=>{const r=RAW.find(x=>x.date===d&&x.sample===s&&x.param===param);return r&&r.value!=null?r.value:null;});
+      return{label:s,data:pts,borderColor:COLORS[si],backgroundColor:COLORS[si]+'18',borderDash:DASH[si],pointRadius:5,pointBackgroundColor:COLORS[si],tension:0.25,spanGaps:false};
+    }).filter(Boolean);
+    document.getElementById('trend-legend').innerHTML=datasets.map(d=>
+      `<span class="lg-i"><span style="display:inline-block;width:20px;height:2px;background:${d.borderColor};vertical-align:middle;margin-right:4px"></span>${d.label}</span>`).join('');
+    if(trendChart)trendChart.destroy();
+    trendChart=new Chart(document.getElementById('trendChart'),{
+      type:'line',data:{labels:DATES.map(d=>d.slice(5)),datasets},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false}},
+        scales:{x:{ticks:{font:{size:11},autoSkip:false,maxRotation:45},grid:{color:'rgba(0,0,0,.05)'}},
+                y:{ticks:{font:{size:11}},grid:{color:'rgba(0,0,0,.05)'}}}}
+    });
+  };
+  sel.onchange=drawTrend;
+  ['cb0','cb1','cb2'].forEach(id=>{document.getElementById(id).onchange=drawTrend;});
+  drawTrend();
+
+  // 熱圖
+  const stabsEl=document.getElementById('stabs');
+  stabsEl.innerHTML=SAMPLES.map((s,i)=>`<button class="stab${i===0?' active':''}" data-s="${s}">${s}</button>`).join('');
+  const buildHM=sample=>{
+    const sP=[...new Set(RAW.filter(r=>r.sample===sample).map(r=>r.param))];
+    let h=`<table class="heatmap"><thead><tr><th class="pc">分析項目</th>`;
+    DATES.forEach(d=>{h+=`<th>${d.slice(5)}</th>`;});
+    h+=`</tr></thead><tbody>`;
+    sP.forEach(p=>{
+      h+=`<tr><td class="hm-p">${p}</td>`;
+      DATES.forEach(d=>{
+        const r=RAW.find(x=>x.date===d&&x.sample===sample&&x.param===p);
+        if(!r){h+=`<td class="hm-na">—</td>`;return;}
+        let cls='hm-na',txt=r.value!=null?r.value:'—';
+        if(r.status==='正常')cls='hm-ok';else if(r.status==='超標')cls='hm-ov';else if(r.status==='低於標準')cls='hm-lo';
+        h+=`<td class="${cls}" title="${p}: ${r.value} (${r.control})">${txt}</td>`;
+      });
+      h+=`</tr>`;
+    });
+    h+=`</tbody></table>`;
+    document.getElementById('hm-wrap').innerHTML=h;
+  };
+  stabsEl.querySelectorAll('.stab').forEach(btn=>{
+    btn.onclick=()=>{stabsEl.querySelectorAll('.stab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');buildHM(btn.dataset.s);};
+  });
+  buildHM(SAMPLES[0]);
+}
+
+// ══════════════════════════════════════
+//  初始化
+// ══════════════════════════════════════
+document.getElementById('entry-date').value = new Date().toISOString().slice(0,10);
+fetchData().then(renderHistory);
+</script>
+</body>
+</html>
