@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>冷卻水塔水質管理系統</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;background:#f1f5f9;color:#1a1a2e;min-height:100vh}
@@ -31,6 +32,11 @@ body{font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;background
 .btn-ghost{background:#f1f5f9;color:#475569;border:1px solid #e2e8f0}.btn-ghost:hover{background:#e2e8f0}
 
 /* ── 輸入表單 ── */
+#rpt-zone{border:2px dashed #93c5fd;border-radius:10px;padding:18px;text-align:center;background:#eff6ff;cursor:pointer;transition:all .15s}
+#rpt-zone.drag{border-color:#2563eb;background:#dbeafe}
+#rpt-zone .rz-t{font-size:13px;font-weight:600;color:#1e40af}
+#rpt-zone .rz-s{font-size:11px;color:#64748b;margin-top:4px}
+#rpt-msg{font-size:12px;margin-top:8px;color:#475569}
 .date-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .date-row label{font-size:13px;font-weight:500;color:#374151}
 .date-row input[type=date]{padding:6px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;font-family:inherit;color:#1a1a2e}
@@ -111,6 +117,16 @@ body{font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;background
 <div class="page active" id="page-input">
 
   <div class="card">
+    <div class="sec-title">📄 上傳水質分析報告（自動帶入數值）</div>
+    <div id="rpt-zone">
+      <input type="file" id="rpt-input" accept=".pdf" multiple style="display:none">
+      <div class="rz-t">拖曳原程水質分析表 PDF 至此，或點擊選擇（可多選）</div>
+      <div class="rz-s">自動讀取取樣日期與 MU / 400RT / 800RT 數值，確認後按儲存即可</div>
+    </div>
+    <div id="rpt-msg"></div>
+  </div>
+
+  <div class="card">
     <div class="sec-title">📅 取樣日期</div>
     <div class="date-row">
       <label>選擇日期：</label>
@@ -127,7 +143,7 @@ body{font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;background
     </div>
     <div class="form-actions">
       <button class="btn btn-ghost" onclick="clearForm()">清空</button>
-      <button class="btn btn-success" onclick="saveEntry()">✅ 儲存此次取樣</button>
+      <button class="btn btn-success" id="save-btn" onclick="saveEntry()">✅ 儲存此次取樣</button>
     </div>
   </div>
 
@@ -211,6 +227,7 @@ const COLORS     = ['#2563eb','#059669','#d97706'];
 const DASH       = [[],[6,3],[3,3]];
 let   cachedData = [];
 let   donutChart, trendChart;
+let   editMode   = false;   // 目前是否為編輯模式
 
 // ══════════════════════════════════════
 //  JSONP 工具
@@ -298,14 +315,19 @@ function setStatus(msg){ document.getElementById('status-bar').textContent = msg
 // ══════════════════════════════════════
 //  資料輸入
 // ══════════════════════════════════════
-function loadForm() {
+function loadForm(prefill, isEdit) {
   const date = document.getElementById('entry-date').value;
   if (!date) { alert('請先選擇取樣日期'); return; }
 
-  // 確認是否已有此日期資料
+  editMode = !!isEdit;
   const exists = cachedData.some(r => r.date === date);
-  document.getElementById('date-hint').textContent = exists ? '⚠️ 此日期已有資料，儲存後將新增於現有資料之後' : '';
-  document.getElementById('form-title').textContent = `📋 ${date} 取樣數值輸入`;
+  document.getElementById('date-hint').textContent =
+    editMode ? '✏️ 編輯模式：儲存後將覆蓋原有資料'
+    : exists ? '⚠️ 此日期已有資料，儲存後將新增於現有資料之後' : '';
+  document.getElementById('form-title').textContent =
+    editMode ? `✏️ 編輯 ${date} 取樣數值` : `📋 ${date} 取樣數值輸入`;
+  document.getElementById('save-btn').textContent =
+    editMode ? '💾 更新此次取樣' : '✅ 儲存此次取樣';
 
   const tbl = document.getElementById('entry-table');
   let html = `<thead>
@@ -329,7 +351,8 @@ function loadForm() {
         html += `<td style="text-align:center">
           <input class="val-inp" type="number" step="any"
             data-sk="${sk}" data-pk="${def.key}"
-            oninput="onInput(this)" placeholder="—">
+            oninput="onInput(this)" placeholder="—"
+            value="${prefill ? (prefill[sk]?.[def.key] ?? '') : ''}">
         </td>
         <td class="st-td" id="st_${sk}_${def.key.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'_')}">
           <span class="s-na">—</span>
@@ -341,6 +364,12 @@ function loadForm() {
   html += '</tbody>';
   tbl.innerHTML = html;
   document.getElementById('form-card').style.display = 'block';
+  // 若有預填資料，觸發狀態更新
+  if (prefill) {
+    document.querySelectorAll('.val-inp').forEach(inp => {
+      if (inp.value !== '') onInput(inp);
+    });
+  }
 }
 
 function onInput(inp) {
@@ -359,7 +388,6 @@ async function saveEntry() {
   const date = document.getElementById('entry-date').value;
   if (!date) { alert('請先選擇日期'); return; }
 
-  // 收集所有有值的欄位
   const rows = [];
   document.querySelectorAll('.val-inp').forEach(inp => {
     const v = inp.value.trim();
@@ -367,28 +395,149 @@ async function saveEntry() {
     const def = PARAM_DEFS.find(p=>p.key===inp.dataset.pk);
     const sampleName = SAMPLES[SAMPLE_KEYS.indexOf(inp.dataset.sk)];
     const val = parseFloat(v);
-    const status = calcStatus(def, val);
-    rows.push([date, sampleName, def.key, val, def.ctrl, status]);
+    rows.push([date, sampleName, def.key, val, def.ctrl, calcStatus(def, val)]);
   });
 
   if (!rows.length) { alert('請至少輸入一筆數值'); return; }
 
   try {
-    setStatus('儲存中…');
-    const res = await jsonp({
-      action: 'write',
-      rows: JSON.stringify(rows)
-    });
+    setStatus(editMode ? '更新中…' : '儲存中…');
+    const action = editMode ? 'update' : 'write';
+    const params = editMode
+      ? { action, date, rows: JSON.stringify(rows) }
+      : { action, rows: JSON.stringify(rows) };
+    const res = await jsonp(params);
     if (res.status !== 'ok') throw new Error(res.message);
-    alert(`✅ 已儲存 ${date} 共 ${rows.length} 筆資料`);
-    // 重新讀取
+    alert(editMode
+      ? `💾 已更新 ${date} 共 ${rows.length} 筆資料`
+      : `✅ 已儲存 ${date} 共 ${rows.length} 筆資料`);
+    editMode = false;
     await fetchData();
     renderHistory();
     document.getElementById('form-card').style.display = 'none';
+    nextReport();
   } catch(e) {
-    setStatus('⚠️ 儲存失敗：'+e.message);
-    alert('儲存失敗：'+e.message);
+    setStatus('⚠️ 失敗：'+e.message);
+    alert('操作失敗：'+e.message);
   }
+}
+
+// ══════════════════════════════════════
+//  上傳報告自動帶入
+// ══════════════════════════════════════
+// ══ 報告解析：依欄位位置讀取 MU / 400RT / 800RT 數值 ══
+function parseReportItems(items) {
+  // items: [{str, x, y, w}]  (y 由下往上)
+  const all = items.map(i => i.str).join(' ');
+
+  // 取樣日期：西元 2026/11/16，或民國 115/11/16
+  let date = null;
+  let m = all.match(/(20\d{2})\s*[\/\-.年]\s*(\d{1,2})\s*[\/\-.月]\s*(\d{1,2})/);
+  if (m) date = `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+  else {
+    m = all.match(/(1\d{2})\s*[\/\-.年]\s*(\d{1,2})\s*[\/\-.月]\s*(\d{1,2})/);
+    if (m) date = `${+m[1]+1911}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+  }
+
+  // 欄位標題位置
+  const cx = it => it.x + (it.w || 0) / 2;
+  const hdr = k => items.find(i => i.str.trim().toUpperCase() === k);
+  const hMU = hdr('MU'), h4 = hdr('400RT'), h8 = hdr('800RT');
+  if (!hMU || !h4 || !h8) throw new Error('找不到 MU / 400RT / 800RT 欄位標題');
+  const cols = [['mu', cx(hMU)], ['rt4', cx(h4)], ['rt8', cx(h8)]];
+  const gap  = (cols[2][1] - cols[0][1]) / 2;          // 欄距
+  const xMin = cols[0][1] - gap * 0.8, xMax = cols[2][1] + gap * 0.8;
+
+  // 依 y 分列（容差 6）
+  const sorted = [...items].filter(i => i.str.trim()).sort((a, b) => b.y - a.y);
+  const rows = [];
+  sorted.forEach(it => {
+    const r = rows.find(r => Math.abs(r.y - it.y) <= 6);
+    if (r) r.items.push(it); else rows.push({ y: it.y, items: [it] });
+  });
+
+  const LABELS = [
+    ['M-鹼性度', /鹼性度|Alkalinity/i],
+    ['總硬度',   /總硬度|Total\s*Hardness/i],
+    ['鈣硬度',   /鈣硬度|Ca-?\s*Hardness/i],
+    ['鎂硬度',   /鎂硬度|Mg-?\s*Hardness/i],
+    ['氯離子',   /氯離子|Chloride/i],
+    ['溶解性鐵', /溶解性鐵|Iron/i],
+    ['導電度',   /導電度|Conductivity/i],
+    ['RSI',      /RSI|萊氏/i],
+    ['矽酸鹽',   /矽酸鹽|Silica/i],
+    ['PH值',     /pH\s*值|pH\s*value/i],
+  ];
+
+  const prefill = { mu: {}, rt4: {}, rt8: {} };
+  let count = 0;
+  rows.forEach(r => {
+    const labelText = r.items.filter(i => cx(i) < xMin).map(i => i.str).join(' ');
+    const hit = LABELS.find(([, re]) => re.test(labelText));
+    if (!hit) return;
+    r.items.forEach(it => {
+      const s = it.str.trim();
+      if (!/^\d+(\.\d+)?$/.test(s)) return;
+      const c = cx(it);
+      if (c < xMin || c > xMax) return;             // 排除下標 3、控制基準欄
+      const [sk] = cols.reduce((a, b) => Math.abs(b[1] - c) < Math.abs(a[1] - c) ? b : a);
+      prefill[sk][hit[0]] = parseFloat(s);
+      count++;
+    });
+  });
+  if (!count) throw new Error('報告中讀不到任何檢測數值');
+  return { date, prefill, count };
+}
+
+// 瀏覽器 / Node 共用：從 pdf.js 文件取出文字項目
+async function extractPdfItems(pdf) {
+  const page = await pdf.getPage(1);
+  const tc = await page.getTextContent();
+  return tc.items.map(i => ({ str: i.str, x: i.transform[4], y: i.transform[5], w: i.width }));
+}
+
+
+if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc =
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+let reportQueue = [];
+const rptZone = document.getElementById('rpt-zone');
+const rptInput = document.getElementById('rpt-input');
+rptZone.onclick = () => rptInput.click();
+rptZone.ondragover = e => { e.preventDefault(); rptZone.classList.add('drag'); };
+rptZone.ondragleave = () => rptZone.classList.remove('drag');
+rptZone.ondrop = e => { e.preventDefault(); rptZone.classList.remove('drag'); queueReports([...e.dataTransfer.files]); };
+rptInput.onchange = () => { const fs = [...rptInput.files]; rptInput.value = ''; queueReports(fs); };
+
+async function queueReports(files) {
+  const msg = document.getElementById('rpt-msg');
+  const parsed = [];
+  for (const f of files) {
+    try {
+      const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(await f.arrayBuffer()) }).promise;
+      const r = parseReportItems(await extractPdfItems(pdf));
+      if (!r.date) throw new Error('讀不到取樣日期');
+      parsed.push({ ...r, name: f.name });
+    } catch (e) {
+      alert(`「${f.name}」解析失敗：${e.message}\n請改用手動輸入。`);
+    }
+  }
+  parsed.sort((a, b) => a.date.localeCompare(b.date));
+  reportQueue.push(...parsed);
+  if (parsed.length) nextReport();
+}
+
+function nextReport() {
+  const msg = document.getElementById('rpt-msg');
+  const r = reportQueue.shift();
+  if (!r) { msg.textContent = ''; return; }
+  document.getElementById('entry-date').value = r.date;
+  const exists = cachedData.some(x => x.date === r.date);
+  loadForm(r.prefill, exists);
+  document.getElementById('date-hint').textContent =
+    `📄 已從「${r.name}」帶入 ${r.count} 筆數值` + (exists ? '（此日期已有資料，儲存後將覆蓋）' : '') + '，請確認後儲存';
+  msg.textContent = reportQueue.length ? `尚有 ${reportQueue.length} 份報告待確認：${reportQueue.map(q=>q.date).join('、')}` : '';
+  document.getElementById('form-card').scrollIntoView({ behavior: 'smooth' });
 }
 
 // ══════════════════════════════════════
@@ -412,8 +561,42 @@ function renderHistory() {
           ${nLow?`<span class="badge b-low">低標 ${nLow}</span>`:''}
         </div>
       </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-ghost" style="font-size:11px" onclick="editEntry('${date}')">✏️ 編輯</button>
+        <button class="btn" style="font-size:11px;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5" onclick="deleteEntry('${date}')">🗑 刪除</button>
+      </div>
     </div>`;
   }).join('');
+}
+
+// 編輯：把該日期資料預填回表單
+function editEntry(date) {
+  document.getElementById('entry-date').value = date;
+  // 整理成 { sk: { paramKey: value } } 結構
+  const prefill = { mu:{}, rt4:{}, rt8:{} };
+  cachedData.filter(r=>r.date===date).forEach(r => {
+    const si = SAMPLES.indexOf(r.sample);
+    if (si < 0) return;
+    prefill[SAMPLE_KEYS[si]][r.param] = r.value;
+  });
+  loadForm(prefill, true);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// 刪除：確認後移除該日期所有資料
+async function deleteEntry(date) {
+  if (!confirm(`確定要刪除 ${date} 的所有取樣資料？\n此動作無法復原。`)) return;
+  try {
+    setStatus('刪除中…');
+    const res = await jsonp({ action: 'delete', date });
+    if (res.status !== 'ok') throw new Error(res.message);
+    setStatus(`已刪除 ${date} 的資料`);
+    await fetchData();
+    renderHistory();
+  } catch(e) {
+    setStatus('⚠️ 刪除失敗：'+e.message);
+    alert('刪除失敗：'+e.message);
+  }
 }
 
 // ══════════════════════════════════════
