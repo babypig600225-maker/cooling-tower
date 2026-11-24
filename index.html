@@ -115,13 +115,100 @@ body{font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;background
 .loading{text-align:center;padding:60px;color:#94a3b8;font-size:14px}
 .spin{display:inline-block;width:20px;height:20px;border:2px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* ══ 活潑版儀表板 ══ */
+body{background:#f0f7fb}
+.lock-btn{border:none;background:transparent;font-size:15px;cursor:pointer;opacity:.45;padding:4px 6px;border-radius:6px}
+.lock-btn:hover{opacity:1;background:#f1f5f9}
+.sec-h{font-size:14px;font-weight:700;color:#0f172a;margin:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.muted{font-size:11px;font-weight:400;color:#94a3b8}
+.chip-sel{font-size:12px;padding:5px 10px;border:1px solid #cbd5e1;border-radius:20px;font-family:inherit;background:#fff}
+
+.hero{background:linear-gradient(135deg,#38bdf8 0%,#0284c7 55%,#075985 100%);border-radius:20px;padding:22px 24px 0;color:#fff;margin-bottom:6px;overflow:hidden}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px}
+.hero h2{font-size:22px;font-weight:800;letter-spacing:.5px}
+.hero-sub{font-size:12px;opacity:.85;margin-top:4px}
+.hero-date{font-size:13px;opacity:.95;text-align:right}
+.hero-date b{display:block;font-size:26px;font-weight:800;letter-spacing:.5px}
+.towers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:18px}
+.tower{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);border-radius:16px;padding:14px 16px;display:flex;gap:14px;align-items:center;transition:transform .2s}
+.tower:hover{transform:translateY(-3px)}
+.tower svg{flex:0 0 64px}
+.tower-name{font-size:16px;font-weight:800;display:flex;align-items:center;gap:6px}
+.tower-name .face{font-size:22px;line-height:1}
+.tower-chip{display:inline-block;margin-top:6px;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:700}
+.tower-meta{font-size:12px;opacity:.92;margin-top:6px;line-height:1.6}
+.c-good{background:#dcfce7;color:#166534}.c-watch{background:#fef3c7;color:#92400e}.c-bad{background:#fee2e2;color:#991b1b}.c-ref{background:#e0f2fe;color:#075985}
+.hero-wave{display:block;width:calc(100% + 48px);height:36px;margin:16px -24px 0}
+.steam circle{fill:rgba(255,255,255,.75);animation:steam 3.2s ease-in-out infinite}
+.steam circle:nth-child(2){animation-delay:.8s}.steam circle:nth-child(3){animation-delay:1.6s}
+@keyframes steam{0%{transform:translateY(4px);opacity:0}40%{opacity:.9}100%{transform:translateY(-8px);opacity:0}}
+.water{transform-box:fill-box;transform-origin:bottom;transform:scaleY(0);transition:transform 1.4s cubic-bezier(.2,.8,.2,1)}
+
+.db-sum{background:#fff;border-radius:16px;padding:16px 20px;border:1px solid #e2e8f0;margin-bottom:16px;border-left:5px solid #38bdf8}
+.db-sum-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+#db-sum-text{white-space:pre-wrap;font-size:13px;line-height:1.85;color:#1f2937}
+
+.gauge-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:16px}
+.gcard{background:#fff;border-radius:16px;padding:16px 20px;border:1px solid #e2e8f0}
+.gcard-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.gcard-head h3{font-size:16px;font-weight:800;color:#0f172a;display:flex;align-items:center;gap:8px}
+.grow{display:grid;grid-template-columns:64px minmax(0,1fr) 112px;align-items:center;gap:10px;margin:10px 0;font-size:12px}
+.gname{color:#475569;font-weight:600}
+.gbar{height:14px;background:#eef2f7;border-radius:10px;position:relative;overflow:hidden}
+.gfill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:10px;transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
+.g80{position:absolute;top:-2px;bottom:-2px;left:80%;border-left:2px dotted #cbd5e1}
+.gband{position:absolute;top:0;bottom:0;background:#bbf7d0;border-radius:10px}
+.gdot{position:absolute;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px #94a3b8;left:0;transition:left 1.2s cubic-bezier(.2,.8,.2,1)}
+.gval{text-align:right;font-weight:700;color:#0f172a;white-space:nowrap}
+.gval small{font-weight:500;color:#94a3b8;margin-left:4px}
+.gval .d{font-weight:500;font-size:11px;color:#64748b;margin-left:4px}
+.cycles{display:flex;align-items:center;gap:12px;margin-top:12px;padding-top:12px;border-top:1px dashed #e2e8f0}
+.cycles .big{font-size:26px;font-weight:800;color:#0369a1;line-height:1}
+.cycles .lbl{font-size:12px;color:#475569;line-height:1.5}
+
+.trend-sec{margin-bottom:16px}
+.trend-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.trend-ctrl{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.seg{display:inline-flex;background:#f1f5f9;border-radius:20px;padding:3px}
+.seg button{border:none;background:transparent;font-family:inherit;font-size:12px;padding:4px 12px;border-radius:16px;color:#64748b;cursor:pointer}
+.seg button.on{background:#fff;color:#0369a1;font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.chips{display:flex;gap:6px}
+.chip{border:1.5px solid #cbd5e1;background:#fff;border-radius:20px;font-family:inherit;font-size:12px;padding:3px 12px;cursor:pointer;color:#94a3b8;display:flex;align-items:center;gap:6px}
+.chip i{width:10px;height:10px;border-radius:50%;display:inline-block;opacity:.35}
+.chip.on{color:#0f172a;font-weight:600}.chip.on i{opacity:1}
+.trend-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.tcard{border:1px solid #eef2f7;border-radius:12px;padding:10px 12px 6px;background:#fcfdfe}
+.tcard-h{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;margin-bottom:4px}
+.tcard-h b{color:#0f172a;font-size:13px}
+.tcard-h span{color:#94a3b8;font-size:11px}
+.tcanvas{position:relative;height:150px}
+
+.hm-ref{background:#f1f5f9;color:#64748b}
+.alerts{margin-top:12px;font-size:12px}
+.alerts summary{cursor:pointer;color:#475569;font-weight:600}
+.alert-row{display:flex;justify-content:space-between;gap:8px;padding:6px 10px;margin-top:6px;border-radius:8px;background:#fee2e2;color:#991b1b}
+.alert-row.low{background:#fef3c7;color:#92400e}
+
+@media (max-width:600px){
+  #status-bar{display:none}
+  .topbar{padding:0 14px}.topbar h1{font-size:15px}
+  .hero-date{text-align:left}
+}
+@media (max-width:820px){
+  .towers,.gauge-grid,.trend-grid{grid-template-columns:minmax(0,1fr)}
+  .page{padding:16px}
+}
+@media (prefers-reduced-motion:reduce){
+  .water,.gfill,.gdot{transition:none}.steam circle{animation:none}
+}
 </style>
 </head>
 <body>
 
 <!-- ── 頂部導覽 ── -->
 <div class="topbar">
-  <h1>🌊 冷卻水塔水質管理系統</h1>
+  <h1>🌊 冷卻水塔水質站</h1>
   <div class="tabs" id="admin-tabs" style="display:none">
     <button class="tab" onclick="switchTab('input')">📝 資料輸入</button>
     <button class="tab active" onclick="switchTab('dashboard')">📊 儀表板</button>
@@ -129,6 +216,7 @@ body{font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;background
   <div class="status-bar">
     <span id="status-bar">就緒</span>
     <span id="admin-badge" class="admin-badge" style="display:none">管理員</span>
+    <button id="lock-btn" class="lock-btn" title="管理員登入" onclick="switchTab('login')">🔒</button>
     <button id="logout-btn" class="btn btn-ghost" style="display:none;font-size:11px;padding:4px 10px" onclick="logout()">登出</button>
   </div>
 </div>
@@ -198,56 +286,66 @@ body{font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;background
 <div class="page active" id="page-dashboard">
   <div id="db-loading" class="loading"><span class="spin"></span>載入資料中…</div>
   <div id="db-content" style="display:none">
-    <div class="db-subtitle">
-      <h2>冷卻水塔水質分析儀表板</h2>
-      <span id="db-sub"></span>
-    </div>
-    <div class="db-sum">
+
+    <!-- 最新取樣 -->
+    <section class="hero">
+      <div class="hero-top">
+        <div>
+          <h2>冷卻水塔水質站</h2>
+          <div class="hero-sub" id="hero-sub"></div>
+        </div>
+        <div class="hero-date">最新取樣<b id="hero-date"></b></div>
+      </div>
+      <div class="towers" id="towers"></div>
+      <svg class="hero-wave" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0,22 C150,40 300,4 450,20 C600,36 750,6 900,20 C1050,34 1125,14 1200,20 L1200,40 L0,40 Z" fill="#f0f7fb"/>
+      </svg>
+    </section>
+
+    <!-- 摘要 -->
+    <section class="db-sum">
       <div class="db-sum-head">
-        <p class="db-title" style="margin:0">📝 取樣摘要<span class="sum-tag" id="db-sum-tag"></span></p>
+        <p class="sec-h">📝 水質日誌<span class="sum-tag" id="db-sum-tag"></span></p>
         <div style="display:flex;gap:8px;align-items:center">
-          <select id="db-sum-sel" style="font-size:12px;padding:5px 10px;border:1px solid #cbd5e1;border-radius:6px;font-family:inherit"></select>
+          <select id="db-sum-sel" class="chip-sel"></select>
           <button class="btn btn-ghost" style="font-size:11px" onclick="copySummary()">📋 複製</button>
         </div>
       </div>
       <div id="db-sum-text"></div>
-    </div>
-    <div class="kpi-grid" id="kpi-grid"></div>
-    <div class="two-col">
-      <div class="db-card">
-        <p class="db-title">狀態分布</p>
-        <div style="position:relative;height:160px;margin-bottom:8px"><canvas id="donutChart"></canvas></div>
-        <div id="donut-legend" class="legend" style="justify-content:center"></div>
+    </section>
+
+    <!-- 水位計 -->
+    <div class="gauge-grid" id="gauges"></div>
+
+    <!-- 趨勢小圖 -->
+    <section class="db-card trend-sec">
+      <div class="trend-head">
+        <p class="sec-h">📈 趨勢<span class="muted">綠色區帶＝控制基準範圍，橘色虛線＝上限</span></p>
+        <div class="trend-ctrl">
+          <div class="seg" id="seg-range">
+            <button data-r="6">近 6 次</button><button data-r="12">近 12 次</button><button data-r="all" class="on">全部</button>
+          </div>
+          <div class="chips" id="chips-sample"></div>
+        </div>
       </div>
-      <div class="db-card">
-        <p class="db-title">異常 / 低於標準紀錄</p>
-        <div id="alert-list" style="max-height:230px;overflow-y:auto;font-size:12px"></div>
+      <div class="trend-grid" id="trend-grid"></div>
+    </section>
+
+    <!-- 水質日曆 -->
+    <section class="db-card">
+      <div class="trend-head">
+        <p class="sec-h">🗓 水質日曆<span class="muted">每一格是一次取樣的數值</span></p>
+        <div class="stabs" id="stabs"></div>
       </div>
-    </div>
-    <div class="db-card" style="margin-bottom:16px">
-      <p class="db-title">趨勢分析</p>
-      <div class="controls">
-        <label style="font-weight:600;color:#334155">分析項目</label>
-        <select id="param-sel"></select>
-        <span style="font-size:11px;color:#94a3b8;margin:0 4px">顯示樣品：</span>
-        <label><input type="checkbox" id="cb0" checked> MU(原水)</label>
-        <label><input type="checkbox" id="cb1" checked> 400RT(舊廠)</label>
-        <label><input type="checkbox" id="cb2" checked> 800RT(新廠)</label>
-      </div>
-      <div id="trend-legend" class="legend"></div>
-      <div style="position:relative;height:250px"><canvas id="trendChart"></canvas></div>
-    </div>
-    <div class="db-card">
-      <p class="db-title">各次取樣狀態矩陣</p>
-      <div class="stabs" id="stabs"></div>
       <div class="legend">
-        <span class="lg-i"><span class="lg-dot" style="background:#4ade80"></span>正常</span>
-        <span class="lg-i"><span class="lg-dot" style="background:#f87171"></span>超標</span>
+        <span class="lg-i"><span class="lg-dot" style="background:#86efac"></span>正常</span>
+        <span class="lg-i"><span class="lg-dot" style="background:#fca5a5"></span>超標</span>
         <span class="lg-i"><span class="lg-dot" style="background:#fcd34d"></span>低於標準</span>
-        <span class="lg-i"><span class="lg-dot" style="background:#f1f5f9"></span>無控制基準</span>
+        <span class="lg-i"><span class="lg-dot" style="background:#e2e8f0"></span>無控制基準／參考</span>
       </div>
       <div class="hm-wrap" id="hm-wrap"></div>
-    </div>
+      <details class="alerts" id="alerts"></details>
+    </section>
   </div>
 </div>
 
@@ -792,121 +890,245 @@ async function deleteEntry(date) {
 // ══════════════════════════════════════
 //  儀表板
 // ══════════════════════════════════════
+const MU = 'MU(原水)';
+const SCOL = { '400RT(舊廠)':'#2563eb', '800RT(新廠)':'#f97316', 'MU(原水)':'#94a3b8' };
+const BAR_ROWS = [['M-鹼性度','鹼度'],['鈣硬度','鈣硬度'],['氯離子','氯離子'],['導電度','導電度'],['溶解性鐵','溶解性鐵']];
+const RANGE_ROWS = [['PH值','pH',7,10],['RSI','RSI',3.5,7.5]];
+const TREND_PARAMS = [
+  ['PH值','pH'],['RSI','RSI'],['濃縮倍數','濃縮倍數'],
+  ['導電度','導電度 μS/cm'],['鈣硬度','鈣硬度'],['M-鹼性度','鹼度'],
+  ['氯離子','氯離子'],['總硬度','總硬度'],['溶解性鐵','溶解性鐵']
+];
+const FACE = { good:'🙂', watch:'😐', bad:'😟' };
+const LEVEL_TXT = { good:'穩定', watch:'需留意', bad:'超標' };
+let trendCharts = [], trendRange = 'all';
+const trendShow = { '400RT(舊廠)':true, '800RT(新廠)':true, 'MU(原水)':false };
+const defOf = k => PARAM_DEFS.find(p => p.key === k);
+const fmtV = (k, v) => v == null ? '—' : (k === 'RSI' ? Number(v).toFixed(1) : String(+Number(v).toFixed(2)));
+
+function evalSnap(snap) {
+  const over = [], watch = []; let worst = 0;
+  PARAM_DEFS.forEach(d => {
+    const v = snap && snap[d.key];
+    if (v == null || d.lower === null) return;
+    const st = calcStatus(d, v);
+    if (st !== '正常') over.push(d.key);
+    if (d.key !== 'PH值' && d.key !== 'RSI' && d.upper) {
+      const pct = v / d.upper * 100;
+      worst = Math.max(worst, pct);
+      if (st === '正常' && pct >= 80) watch.push(d.key);
+    }
+  });
+  return { over, watch, worst, level: over.length ? 'bad' : watch.length ? 'watch' : 'good' };
+}
+function cyclesOf(snapAll, s) {
+  const t = snapAll[s] && snapAll[s]['導電度'], m = snapAll[MU] && snapAll[MU]['導電度'];
+  return (t && m) ? t / m : null;
+}
+const cn = s => s.replace('(', ' ').replace(')', '');
+
+function towerSVG(level, pct, i) {
+  const col = { good:'#5eead4', watch:'#fcd34d', bad:'#fca5a5', ref:'#bae6fd' }[level];
+  const shape = 'M16,14 L48,14 Q35,46 55,74 L9,74 Q29,46 16,14 Z';
+  return `<svg viewBox="0 0 64 78" width="64" height="78" aria-hidden="true">
+    <defs><clipPath id="tc${i}"><path d="${shape}"/></clipPath></defs>
+    <g class="steam"><circle cx="26" cy="9" r="4"/><circle cx="34" cy="6" r="5"/><circle cx="41" cy="9" r="3.5"/></g>
+    <path d="${shape}" fill="rgba(255,255,255,.16)"/>
+    <g clip-path="url(#tc${i})"><rect class="water" x="0" y="14" width="64" height="60" fill="${col}" data-s="${Math.min(pct,100)/100}"/></g>
+    <path d="${shape}" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/>
+    <line x1="8" y1="74" x2="56" y2="74" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+  </svg>`;
+}
+
 async function renderDashboard() {
   document.getElementById('db-loading').style.display = 'block';
   document.getElementById('db-content').style.display = 'none';
-
   if (!cachedData.length) await fetchData();
-
-  const RAW     = cachedData;
-  const DATES   = [...new Set(RAW.map(r=>r.date))].sort();
-  const PARAMS  = [...new Set(RAW.map(r=>r.param))];
-
-  if (!RAW.length) {
-    document.getElementById('db-loading').textContent = '尚無資料';
-    return;
-  }
+  const RAW = cachedData;
+  if (!RAW.length) { document.getElementById('db-loading').textContent = '尚無資料'; return; }
+  const DATES = [...new Set(RAW.map(r => r.date))].sort();
   document.getElementById('db-loading').style.display = 'none';
   document.getElementById('db-content').style.display = 'block';
 
-  document.getElementById('db-sub').textContent =
-    `資料區間：${DATES[0]} ～ ${DATES[DATES.length-1]}　共 ${DATES.length} 次取樣`;
+  const snaps = {}; DATES.forEach(d => snaps[d] = snapshotOf(d));
+  const last = DATES[DATES.length - 1], prev = DATES[DATES.length - 2];
+  const cur = snaps[last], pre = prev ? snaps[prev] : {};
 
-  // 取樣摘要
+  // ── 最新取樣 ──
+  document.getElementById('hero-date').textContent = last;
+  document.getElementById('hero-sub').textContent = `${DATES[0]} 起共 ${DATES.length} 次取樣${prev ? `　｜　前次 ${prev}` : ''}`;
+  const order = [MU, ...TOWERS];
+  document.getElementById('towers').innerHTML = order.map((s, i) => {
+    const snap = cur[s] || {};
+    if (s === MU) {
+      return `<div class="tower">${towerSVG('ref', 45, i)}<div>
+        <div class="tower-name">MU 補充水</div>
+        <span class="tower-chip c-ref">參考・不判定</span>
+        <div class="tower-meta">導電度 ${fmtV('導電度', snap['導電度'])}　pH ${fmtV('PH值', snap['PH值'])}</div></div></div>`;
+    }
+    const e = evalSnap(snap), n = e.over.length || e.watch.length;
+    return `<div class="tower">${towerSVG(e.level, e.worst, i)}<div>
+      <div class="tower-name"><span class="face">${FACE[e.level]}</span>${cn(s)}</div>
+      <span class="tower-chip c-${e.level}">${LEVEL_TXT[e.level]}${n ? ` ${n} 項` : ''}</span>
+      <div class="tower-meta">最高達基準 ${Math.round(e.worst)}%　RSI ${fmtV('RSI', snap['RSI'])}</div></div></div>`;
+  }).join('');
+
+  // ── 摘要 ──
   const sumSel = document.getElementById('db-sum-sel');
-  sumSel.innerHTML = [...DATES].reverse().map(d=>`<option value="${d}">${d}${cachedSummaries[d]?'':'（未存摘要）'}</option>`).join('');
+  sumSel.innerHTML = [...DATES].reverse().map(d => `<option value="${d}">${d}${cachedSummaries[d] ? '' : '（未存摘要）'}</option>`).join('');
   sumSel.onchange = () => showDbSummary(sumSel.value);
   showDbSummary(sumSel.value);
 
-  // KPI
-  const valid = RAW.filter(r=>r.status!=='-');
-  const total=valid.length, nOk=valid.filter(r=>r.status==='正常').length,
-        nOver=valid.filter(r=>r.status==='超標').length, nLow=valid.filter(r=>r.status==='低於標準').length;
-  document.getElementById('kpi-grid').innerHTML=[
-    [`${total} 筆`,'有效檢測總數','#1e40af'],
-    [`${total?((nOk/total)*100).toFixed(1):0}%`,'正常達標率','#065f46'],
-    [`${nOver} 次`,'超標次數','#991b1b'],
-    [`${nLow} 次`,'低於標準','#92400e']
-  ].map(([v,l,c])=>`<div class="kpi"><p class="kpi-label">${l}</p><p class="kpi-val" style="color:${c}">${v}</p></div>`).join('');
+  // ── 水位計 ──
+  document.getElementById('gauges').innerHTML = TOWERS.map(s => {
+    const snap = cur[s] || {}, psnap = pre[s] || {}, e = evalSnap(snap);
+    const bars = BAR_ROWS.map(([k, name]) => {
+      const v = snap[k]; if (v == null) return '';
+      const d = defOf(k), pct = v / d.upper * 100, pv = psnap[k];
+      const col = pct > 100 ? '#ef4444' : pct >= 80 ? '#f59e0b' : '#14b8a6';
+      const delta = pv ? Math.round((v - pv) / pv * 100) : null;
+      const dtxt = delta == null || delta === 0 ? '' : `<span class="d">${delta > 0 ? '▲' : '▼'}${Math.abs(delta)}%</span>`;
+      return `<div class="grow" title="${name}：${fmtV(k, v)}（控制基準 ${d.ctrl}）${pv != null ? '，前次 ' + fmtV(k, pv) : ''}">
+        <span class="gname">${name}</span>
+        <div class="gbar"><span class="g80"></span><span class="gfill" style="background:${col}" data-w="${Math.min(pct, 100)}"></span></div>
+        <span class="gval">${fmtV(k, v)}<small>${Math.round(pct)}%</small>${dtxt}</span></div>`;
+    }).join('');
+    const ranges = RANGE_ROWS.map(([k, name, lo, hi]) => {
+      const v = snap[k]; if (v == null) return '';
+      const d = defOf(k), pos = x => Math.max(0, Math.min(100, (x - lo) / (hi - lo) * 100));
+      const ok = calcStatus(d, v) === '正常';
+      return `<div class="grow" title="${name}：${fmtV(k, v)}（控制基準 ${d.ctrl}）">
+        <span class="gname">${name}</span>
+        <div class="gbar" style="overflow:visible"><span class="gband" style="left:${pos(d.lower)}%;width:${pos(d.upper) - pos(d.lower)}%"></span>
+          <span class="gdot" style="background:${ok ? '#16a34a' : '#ef4444'}" data-l="${pos(v)}"></span></div>
+        <span class="gval">${fmtV(k, v)}<small>${d.ctrl}</small></span></div>`;
+    }).join('');
+    const cy = cyclesOf(cur, s), pcy = cyclesOf(pre, s);
+    return `<div class="gcard">
+      <div class="gcard-head"><h3>${FACE[e.level]} ${cn(s)}</h3><span class="tower-chip c-${e.level}" style="margin:0">${LEVEL_TXT[e.level]}</span></div>
+      ${bars}${ranges}
+      ${cy ? `<div class="cycles"><span class="big">${cy.toFixed(1)}<small style="font-size:14px"> 倍</small></span>
+        <span class="lbl"><b>濃縮倍數</b>（塔水導電度 ÷ MU 導電度）${pcy ? `<br>前次 ${pcy.toFixed(1)} 倍` : ''}</span></div>` : ''}
+    </div>`;
+  }).join('');
 
-  // 圓餅圖
-  if (donutChart) donutChart.destroy();
-  donutChart = new Chart(document.getElementById('donutChart'),{
-    type:'doughnut',
-    data:{labels:['正常','超標','低於標準'],datasets:[{data:[nOk,nOver,nLow],
-      backgroundColor:['#22c55e','#ef4444','#f59e0b'],borderColor:['#16a34a','#dc2626','#d97706'],borderWidth:1.5}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
-      tooltip:{callbacks:{label:i=>`${i.label}: ${i.raw}筆 (${total?((i.raw/total)*100).toFixed(1):0}%)`}}},cutout:'62%'}
+  // ── 趨勢 ──
+  document.getElementById('chips-sample').innerHTML = [...TOWERS, MU].map(s =>
+    `<button class="chip${trendShow[s] ? ' on' : ''}" data-s="${s}"><i style="background:${SCOL[s]}"></i>${s === MU ? 'MU（參考）' : shortName(s)}</button>`).join('');
+  document.querySelectorAll('#chips-sample .chip').forEach(b => b.onclick = () => {
+    trendShow[b.dataset.s] = !trendShow[b.dataset.s]; b.classList.toggle('on'); drawTrends(DATES, snaps);
   });
-  document.getElementById('donut-legend').innerHTML=
-    `<span class="lg-i"><span class="lg-dot" style="background:#22c55e"></span>正常 ${nOk}</span>
-     <span class="lg-i"><span class="lg-dot" style="background:#ef4444"></span>超標 ${nOver}</span>
-     <span class="lg-i"><span class="lg-dot" style="background:#f59e0b"></span>低於標準 ${nLow}</span>`;
-
-  // 異常列表
-  const alerts=RAW.filter(r=>r.status==='超標'||r.status==='低於標準').sort((a,b)=>b.date.localeCompare(a.date));
-  document.getElementById('alert-list').innerHTML=alerts.length
-    ?alerts.map(r=>{
-      const col=r.status==='超標'?'#991b1b':'#92400e',bg=r.status==='超標'?'#fee2e2':'#fef3c7';
-      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;margin-bottom:5px;background:${bg};border-radius:7px">
-        <span style="flex:1;font-size:11px">${r.date} <b>${r.sample}</b></span>
-        <span style="font-size:10px;color:#64748b;flex:1;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 4px">${r.param}</span>
-        <span style="font-size:11px;font-weight:600;color:${col};white-space:nowrap">${r.status} (${r.value})</span>
-      </div>`;
-    }).join('')
-    :'<div style="color:#94a3b8;text-align:center;padding:20px">無異常紀錄 🎉</div>';
-
-  // 趨勢圖
-  const sel=document.getElementById('param-sel');
-  sel.innerHTML=PARAMS.map((p,i)=>`<option value="${i}">${p}</option>`).join('');
-  const drawTrend=()=>{
-    const pi=parseInt(sel.value||0),param=PARAMS[pi];
-    const checks=['cb0','cb1','cb2'].map(id=>document.getElementById(id).checked);
-    const datasets=SAMPLES.map((s,si)=>{
-      if(!checks[si])return null;
-      const pts=DATES.map(d=>{const r=RAW.find(x=>x.date===d&&x.sample===s&&x.param===param);return r&&r.value!=null?r.value:null;});
-      return{label:s,data:pts,borderColor:COLORS[si],backgroundColor:COLORS[si]+'18',borderDash:DASH[si],pointRadius:5,pointBackgroundColor:COLORS[si],tension:0.25,spanGaps:false};
-    }).filter(Boolean);
-    document.getElementById('trend-legend').innerHTML=datasets.map(d=>
-      `<span class="lg-i"><span style="display:inline-block;width:20px;height:2px;background:${d.borderColor};vertical-align:middle;margin-right:4px"></span>${d.label}</span>`).join('');
-    if(trendChart)trendChart.destroy();
-    trendChart=new Chart(document.getElementById('trendChart'),{
-      type:'line',data:{labels:DATES.map(d=>d.slice(5)),datasets},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false}},
-        scales:{x:{ticks:{font:{size:11},autoSkip:false,maxRotation:45},grid:{color:'rgba(0,0,0,.05)'}},
-                y:{ticks:{font:{size:11}},grid:{color:'rgba(0,0,0,.05)'}}}}
-    });
-  };
-  sel.onchange=drawTrend;
-  ['cb0','cb1','cb2'].forEach(id=>{document.getElementById(id).onchange=drawTrend;});
-  drawTrend();
-
-  // 熱圖
-  const stabsEl=document.getElementById('stabs');
-  stabsEl.innerHTML=SAMPLES.map((s,i)=>`<button class="stab${i===0?' active':''}" data-s="${s}">${s}</button>`).join('');
-  const buildHM=sample=>{
-    const sP=[...new Set(RAW.filter(r=>r.sample===sample).map(r=>r.param))];
-    let h=`<table class="heatmap"><thead><tr><th class="pc">分析項目</th>`;
-    DATES.forEach(d=>{h+=`<th>${d.slice(5)}</th>`;});
-    h+=`</tr></thead><tbody>`;
-    sP.forEach(p=>{
-      h+=`<tr><td class="hm-p">${p}</td>`;
-      DATES.forEach(d=>{
-        const r=RAW.find(x=>x.date===d&&x.sample===sample&&x.param===p);
-        if(!r){h+=`<td class="hm-na">—</td>`;return;}
-        let cls='hm-na',txt=r.value!=null?r.value:'—';
-        if(r.status==='正常')cls='hm-ok';else if(r.status==='超標')cls='hm-ov';else if(r.status==='低於標準')cls='hm-lo';
-        h+=`<td class="${cls}" title="${p}: ${r.value} (${r.control})">${txt}</td>`;
-      });
-      h+=`</tr>`;
-    });
-    h+=`</tbody></table>`;
-    document.getElementById('hm-wrap').innerHTML=h;
-  };
-  stabsEl.querySelectorAll('.stab').forEach(btn=>{
-    btn.onclick=()=>{stabsEl.querySelectorAll('.stab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');buildHM(btn.dataset.s);};
+  document.querySelectorAll('#seg-range button').forEach(b => b.onclick = () => {
+    document.querySelectorAll('#seg-range button').forEach(x => x.classList.remove('on'));
+    b.classList.add('on'); trendRange = b.dataset.r; drawTrends(DATES, snaps);
   });
-  buildHM(SAMPLES[0]);
+  drawTrends(DATES, snaps);
+
+  // ── 水質日曆 ──
+  const stabsEl = document.getElementById('stabs');
+  stabsEl.innerHTML = [...TOWERS, MU].map((s, i) => `<button class="stab${i === 0 ? ' active' : ''}" data-s="${s}">${s === MU ? 'MU（參考）' : shortName(s)}</button>`).join('');
+  stabsEl.querySelectorAll('.stab').forEach(btn => btn.onclick = () => {
+    stabsEl.querySelectorAll('.stab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active'); buildCalendar(btn.dataset.s, DATES);
+  });
+  buildCalendar(TOWERS[0], DATES);
+
+  // ── 塔水異常紀錄 ──
+  const alerts = RAW.filter(r => TOWERS.includes(r.sample) && (r.status === '超標' || r.status === '低於標準'))
+                    .sort((a, b) => b.date.localeCompare(a.date));
+  document.getElementById('alerts').innerHTML = `<summary>🚩 塔水超標／低於標準紀錄（${alerts.length} 筆）</summary>` +
+    (alerts.length ? alerts.map(r => `<div class="alert-row${r.status === '低於標準' ? ' low' : ''}">
+      <span>${r.date}　<b>${shortName(r.sample)}</b>　${r.param}</span><span>${r.status}（${fmtV(r.param, r.value)}）</span></div>`).join('')
+      : '<div style="color:#94a3b8;padding:8px">無紀錄 🎉</div>');
+
+  // 動畫
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    document.querySelectorAll('.water').forEach(el => el.style.transform = `scaleY(${el.dataset.s})`);
+    document.querySelectorAll('.gfill').forEach(el => el.style.width = el.dataset.w + '%');
+    document.querySelectorAll('.gdot').forEach(el => el.style.left = el.dataset.l + '%');
+  }));
+}
+
+// 控制基準區帶
+const bandPlugin = {
+  id: 'band',
+  beforeDatasetsDraw(chart, args, o) {
+    if (!o || (o.lower == null && o.upper == null)) return;
+    const { ctx, chartArea: a, scales: { y } } = chart;
+    const top = o.upper != null ? Math.max(a.top, y.getPixelForValue(o.upper)) : a.top;
+    const bot = o.lower != null ? Math.min(a.bottom, y.getPixelForValue(o.lower)) : a.bottom;
+    ctx.save();
+    ctx.fillStyle = 'rgba(34,197,94,.10)';
+    if (bot > top) ctx.fillRect(a.left, top, a.right - a.left, bot - top);
+    ctx.strokeStyle = '#f59e0b'; ctx.setLineDash([4, 4]); ctx.lineWidth = 1.2;
+    [o.upper, o.lower].forEach(v => {
+      if (v == null || v <= 0) return;
+      const py = y.getPixelForValue(v);
+      if (py < a.top || py > a.bottom) return;
+      ctx.beginPath(); ctx.moveTo(a.left, py); ctx.lineTo(a.right, py); ctx.stroke();
+    });
+    ctx.restore();
+  }
+};
+
+function drawTrends(DATES, snaps) {
+  trendCharts.forEach(c => c.destroy()); trendCharts = [];
+  const ds = trendRange === 'all' ? DATES : DATES.slice(-Number(trendRange));
+  const grid = document.getElementById('trend-grid');
+  grid.innerHTML = TREND_PARAMS.map(([k, name], i) => {
+    const d = defOf(k);
+    return `<div class="tcard"><div class="tcard-h"><b>${name}</b><span>${d ? (d.ctrl === '-' ? '無控制基準' : '基準 ' + d.ctrl) : '塔水 ÷ MU'}</span></div>
+      <div class="tcanvas"><canvas id="tc_${i}" role="img" aria-label="${name}趨勢圖"></canvas></div></div>`;
+  }).join('');
+  TREND_PARAMS.forEach(([k], i) => {
+    const d = defOf(k);
+    const series = [...TOWERS, MU].filter(s => trendShow[s] && !(k === '濃縮倍數' && s === MU) && !(k === 'RSI' && s === MU));
+    const datasets = series.map(s => ({
+      label: s === MU ? 'MU（參考）' : shortName(s),
+      data: ds.map(dt => { const sn = snaps[dt]; const v = k === '濃縮倍數' ? cyclesOf(sn, s) : (sn[s] && sn[s][k]); return v == null ? null : +Number(v).toFixed(2); }),
+      borderColor: SCOL[s], backgroundColor: SCOL[s], borderWidth: s === MU ? 1.5 : 2.2,
+      borderDash: s === MU ? [4, 3] : [], pointRadius: ds.length > 12 ? 2 : 3, pointHoverRadius: 5, tension: .3, spanGaps: true
+    }));
+    const vals = datasets.flatMap(x => x.data).filter(v => v != null);
+    const band = d && d.lower !== null ? { lower: d.lower || null, upper: d.upper } : null;
+    const y = { ticks: { font: { size: 10 }, maxTicksLimit: 5 }, grid: { color: 'rgba(0,0,0,.05)' } };
+    if (band && band.upper && vals.length && Math.max(...vals) >= band.upper * 0.5) y.suggestedMax = band.upper * 1.05;
+    if (band && band.lower && vals.length) y.suggestedMin = Math.min(band.lower - (band.upper - band.lower) * 0.3, Math.min(...vals));
+    trendCharts.push(new Chart(document.getElementById('tc_' + i), {
+      type: 'line', data: { labels: ds.map(mdOf), datasets },
+      options: { responsive: true, maintainAspectRatio: false, animation: { duration: 700 },
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { display: false }, band,
+          tooltip: { callbacks: { title: it => ds[it[0].dataIndex] } } },
+        scales: { x: { ticks: { font: { size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 6 }, grid: { display: false } }, y } },
+      plugins: [bandPlugin]
+    }));
+  });
+}
+
+function buildCalendar(sample, DATES) {
+  const isMU = sample === MU;
+  const sP = PARAM_DEFS.map(d => d.key).filter(k => cachedData.some(r => r.sample === sample && r.param === k));
+  let h = `<table class="heatmap"><thead><tr><th class="pc">分析項目</th>`;
+  DATES.forEach(d => { h += `<th title="${d}">${d.slice(2, 4)}/${mdOf(d)}</th>`; });
+  h += `</tr></thead><tbody>`;
+  sP.forEach(p => {
+    const d = defOf(p);
+    h += `<tr><td class="hm-p">${p}</td>`;
+    DATES.forEach(dt => {
+      const r = cachedData.find(x => x.date === dt && x.sample === sample && x.param === p);
+      if (!r) { h += `<td class="hm-na">—</td>`; return; }
+      const st = isMU ? '-' : calcStatus(d, r.value);
+      const cls = isMU ? 'hm-ref' : st === '正常' ? 'hm-ok' : st === '超標' ? 'hm-ov' : st === '低於標準' ? 'hm-lo' : 'hm-na';
+      h += `<td class="${cls}" title="${dt} ${p}：${fmtV(p, r.value)}（${d.ctrl}）">${fmtV(p, r.value)}</td>`;
+    });
+    h += `</tr>`;
+  });
+  h += `</tbody></table>`;
+  if (isMU) h = `<div style="font-size:11px;color:#64748b;margin-bottom:6px">MU 為補充水，控制基準適用於循環水，此處僅列數值供參考。</div>` + h;
+  const wrap = document.getElementById('hm-wrap');
+  wrap.innerHTML = h;
+  wrap.scrollLeft = wrap.scrollWidth;
 }
 
 // ══════════════════════════════════════
@@ -943,6 +1165,7 @@ function enterAdmin() {
   document.getElementById('admin-tabs').style.display = 'flex';
   document.getElementById('admin-badge').style.display = 'inline';
   document.getElementById('logout-btn').style.display = 'inline-block';
+  document.getElementById('lock-btn').style.display = 'none';
   renderHistory();
   switchTab('input');
 }
@@ -952,6 +1175,7 @@ function logout() {
   document.getElementById('admin-tabs').style.display = 'none';
   document.getElementById('admin-badge').style.display = 'none';
   document.getElementById('logout-btn').style.display = 'none';
+  document.getElementById('lock-btn').style.display = 'inline-block';
   history.replaceState(null, '', location.pathname);
   switchTab('dashboard');
 }
