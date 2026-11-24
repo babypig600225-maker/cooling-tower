@@ -4,11 +4,23 @@
 const SHEET_NAME   = '冷卻水塔水質';
 const SUMMARY_NAME = '取樣摘要';   // 首次儲存摘要時自動建立
 
+// ★ 管理員密碼：請改成自己的密碼（未修改前無法寫入資料）
+const ADMIN_KEY = 'CHANGE_ME';
+const WRITE_ACTIONS = ['write', 'update', 'delete', 'summary'];
+
 function doGet(e) {
   const callback = e.parameter.callback || 'cb';
   const action   = e.parameter.action   || 'read';
 
   try {
+    // ── 管理員驗證 ──
+    if (action === 'auth' || WRITE_ACTIONS.indexOf(action) >= 0) {
+      if (ADMIN_KEY === 'CHANGE_ME') throw new Error('請先在 Code.gs 設定管理員密碼（ADMIN_KEY）並重新部署');
+      const ok = e.parameter.key === ADMIN_KEY;
+      if (action === 'auth') return jsonp(callback, { status: 'ok', admin: ok });
+      if (!ok) throw new Error('權限不足：需要管理員密碼');
+    }
+
     const ss    = SpreadsheetApp.getActiveSpreadsheet();
     const sheet = ss.getSheetByName(SHEET_NAME);
     if (!sheet) throw new Error('找不到工作表：' + SHEET_NAME);

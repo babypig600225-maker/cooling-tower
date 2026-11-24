@@ -17,7 +17,13 @@ body{font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;background
 .tab{padding:6px 18px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:transparent;color:#64748b;transition:all .15s;font-family:inherit}
 .tab.active{background:#dbeafe;color:#1e40af}
 .tab:hover:not(.active){background:#f1f5f9}
-.status-bar{font-size:11px;color:#94a3b8}
+.status-bar{font-size:11px;color:#94a3b8;display:flex;align-items:center;gap:8px}
+.admin-badge{font-size:10px;padding:2px 8px;border-radius:10px;background:#fef3c7;color:#92400e;font-weight:600}
+.login-card{max-width:360px;margin:60px auto;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:24px}
+.login-card h3{font-size:15px;margin-bottom:6px;color:#0f172a}
+.login-card p{font-size:12px;color:#64748b;margin-bottom:14px}
+.login-card input{width:100%;padding:8px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;font-family:inherit;margin-bottom:10px}
+#login-err{font-size:12px;color:#991b1b;min-height:18px}
 
 /* ── 頁面 ── */
 .page{display:none;padding:20px 24px}
@@ -116,15 +122,32 @@ body{font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;background
 <!-- ── 頂部導覽 ── -->
 <div class="topbar">
   <h1>🌊 冷卻水塔水質管理系統</h1>
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('input')">📝 資料輸入</button>
-    <button class="tab" onclick="switchTab('dashboard')">📊 儀表板</button>
+  <div class="tabs" id="admin-tabs" style="display:none">
+    <button class="tab" onclick="switchTab('input')">📝 資料輸入</button>
+    <button class="tab active" onclick="switchTab('dashboard')">📊 儀表板</button>
   </div>
-  <div class="status-bar" id="status-bar">就緒</div>
+  <div class="status-bar">
+    <span id="status-bar">就緒</span>
+    <span id="admin-badge" class="admin-badge" style="display:none">管理員</span>
+    <button id="logout-btn" class="btn btn-ghost" style="display:none;font-size:11px;padding:4px 10px" onclick="logout()">登出</button>
+  </div>
 </div>
 
 <!-- ══════════ 資料輸入分頁 ══════════ -->
-<div class="page active" id="page-input">
+<div class="page" id="page-login">
+  <div class="login-card">
+    <h3>🔒 管理員登入</h3>
+    <p>輸入管理員密碼後即可上傳報告、編輯或刪除資料。</p>
+    <input type="password" id="login-pw" placeholder="管理員密碼" onkeydown="if(event.key==='Enter')login()">
+    <div id="login-err"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="switchTab('dashboard')">返回儀表板</button>
+      <button class="btn btn-primary" onclick="login()">登入</button>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-input">
 
   <div class="card">
     <div class="sec-title">📄 上傳水質分析報告（自動帶入數值）</div>
@@ -172,7 +195,7 @@ body{font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;background
 </div>
 
 <!-- ══════════ 儀表板分頁 ══════════ -->
-<div class="page" id="page-dashboard">
+<div class="page active" id="page-dashboard">
   <div id="db-loading" class="loading"><span class="spin"></span>載入資料中…</div>
   <div id="db-content" style="display:none">
     <div class="db-subtitle">
@@ -266,7 +289,8 @@ let cbIdx = 0;
 function jsonp(params) {
   return new Promise((resolve, reject) => {
     const cb  = 'wq_cb_' + (cbIdx++);
-    const url = API_URL + '?' + Object.entries({ ...params, callback: cb })
+    const withKey = (params.action && params.action !== 'read' && params.action !== 'auth' && adminKey) ? { key: adminKey } : {};
+    const url = API_URL + '?' + Object.entries({ ...params, ...withKey, callback: cb })
       .map(([k,v]) => `${k}=${encodeURIComponent(v)}`).join('&');
     const script = document.createElement('script');
     window[cb] = res => { delete window[cb]; script.remove(); resolve(res); };
@@ -301,7 +325,8 @@ function switchTab(tab) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('page-'+tab).classList.add('active');
-  document.querySelectorAll('.tab')[tab==='input'?0:1].classList.add('active');
+  const t = document.querySelectorAll('.tab')[tab==='input'?0:1];
+  if (t && tab !== 'login') t.classList.add('active');
   if (tab === 'dashboard') renderDashboard();
 }
 
@@ -888,7 +913,60 @@ async function renderDashboard() {
 //  初始化
 // ══════════════════════════════════════
 document.getElementById('entry-date').value = new Date().toISOString().slice(0,10);
-fetchData().then(renderHistory);
+// ══════════════════════════════════════
+//  管理員模式（網址加 ?admin 進入）
+// ══════════════════════════════════════
+let adminKey = null;
+try { adminKey = sessionStorage.getItem('ct_admin_key'); } catch(e) {}
+
+async function verifyKey(key) {
+  try {
+    const r = await jsonp({ action: 'auth', key });
+    if (r.status === 'error') throw new Error(r.message);
+    return r.admin === true;
+  } catch(e) { throw e; }
+}
+async function login() {
+  const pw = document.getElementById('login-pw').value;
+  const err = document.getElementById('login-err');
+  if (!pw) { err.textContent = '請輸入密碼'; return; }
+  err.textContent = '驗證中…';
+  try {
+    if (!(await verifyKey(pw))) { err.textContent = '密碼錯誤（或 Apps Script 尚未更新部署）'; return; }
+    adminKey = pw;
+    try { sessionStorage.setItem('ct_admin_key', pw); } catch(e) {}
+    err.textContent = '';
+    enterAdmin();
+  } catch(e) { err.textContent = e.message; }
+}
+function enterAdmin() {
+  document.getElementById('admin-tabs').style.display = 'flex';
+  document.getElementById('admin-badge').style.display = 'inline';
+  document.getElementById('logout-btn').style.display = 'inline-block';
+  renderHistory();
+  switchTab('input');
+}
+function logout() {
+  adminKey = null;
+  try { sessionStorage.removeItem('ct_admin_key'); } catch(e) {}
+  document.getElementById('admin-tabs').style.display = 'none';
+  document.getElementById('admin-badge').style.display = 'none';
+  document.getElementById('logout-btn').style.display = 'none';
+  history.replaceState(null, '', location.pathname);
+  switchTab('dashboard');
+}
+
+(async () => {
+  await fetchData();
+  const wantAdmin = /[?&]admin\b/.test(location.search) || location.hash === '#admin';
+  if (adminKey) {
+    let ok = false;
+    try { ok = await verifyKey(adminKey); } catch(e) {}
+    if (ok) return enterAdmin();
+    adminKey = null; try { sessionStorage.removeItem('ct_admin_key'); } catch(e) {}
+  }
+  if (wantAdmin) switchTab('login'); else renderDashboard();
+})();
 </script>
 </body>
 </html>
