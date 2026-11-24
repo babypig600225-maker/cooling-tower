@@ -54,6 +54,16 @@ body{font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;background
 .samp-hd{background:#eff6ff !important;color:#1e40af !important}
 .val-inp{width:78px;padding:4px 6px;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;text-align:center;font-family:inherit}
 .val-inp:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 2px #dbeafe}
+.sum-box{margin-top:16px;border-top:1px solid #e2e8f0;padding-top:14px}
+.sum-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap}
+.sum-head b{font-size:13px;color:#374151}
+#summary-text{width:100%;min-height:190px;padding:10px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;line-height:1.7;font-family:inherit;color:#1a1a2e;resize:vertical}
+#summary-text:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 2px #dbeafe}
+.sum-note{font-size:11px;color:#94a3b8;margin-top:4px}
+.db-sum{background:#fff;border-radius:10px;padding:16px 18px;border:1px solid #e2e8f0;margin-bottom:16px}
+.db-sum-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+#db-sum-text{white-space:pre-wrap;font-size:13px;line-height:1.8;color:#1f2937}
+.sum-tag{font-size:10px;padding:2px 8px;border-radius:10px;background:#f1f5f9;color:#64748b;margin-left:6px}
 .form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
 
 /* ── 歷史列表 ── */
@@ -141,6 +151,14 @@ body{font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;background
     <div style="overflow-x:auto">
       <table class="entry-table" id="entry-table"></table>
     </div>
+    <div class="sum-box">
+      <div class="sum-head">
+        <b>📝 本次取樣摘要</b>
+        <button class="btn btn-ghost" style="font-size:11px" onclick="regenSummary(true)">🔄 依數值重新產生</button>
+      </div>
+      <textarea id="summary-text" oninput="summaryTouched=true" placeholder="填入數值後會自動產生摘要草稿，可直接修改"></textarea>
+      <div class="sum-note">草稿依本次與前兩次數值自動產生（大幅變動 ≥15%、連續上升、達控制基準 80% 以上、超標），請確認或修改後隨數值一起儲存。</div>
+    </div>
     <div class="form-actions">
       <button class="btn btn-ghost" onclick="clearForm()">清空</button>
       <button class="btn btn-success" id="save-btn" onclick="saveEntry()">✅ 儲存此次取樣</button>
@@ -160,6 +178,16 @@ body{font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;background
     <div class="db-subtitle">
       <h2>冷卻水塔水質分析儀表板</h2>
       <span id="db-sub"></span>
+    </div>
+    <div class="db-sum">
+      <div class="db-sum-head">
+        <p class="db-title" style="margin:0">📝 取樣摘要<span class="sum-tag" id="db-sum-tag"></span></p>
+        <div style="display:flex;gap:8px;align-items:center">
+          <select id="db-sum-sel" style="font-size:12px;padding:5px 10px;border:1px solid #cbd5e1;border-radius:6px;font-family:inherit"></select>
+          <button class="btn btn-ghost" style="font-size:11px" onclick="copySummary()">📋 複製</button>
+        </div>
+      </div>
+      <div id="db-sum-text"></div>
     </div>
     <div class="kpi-grid" id="kpi-grid"></div>
     <div class="two-col">
@@ -227,7 +255,9 @@ const COLORS     = ['#2563eb','#059669','#d97706'];
 const DASH       = [[],[6,3],[3,3]];
 let   cachedData = [];
 let   donutChart, trendChart;
-let   editMode   = false;   // 目前是否為編輯模式
+let   editMode   = false;
+let   cachedSummaries = {};
+let   summaryTouched  = false;   // 目前是否為編輯模式
 
 // ══════════════════════════════════════
 //  JSONP 工具
@@ -303,6 +333,7 @@ async function fetchData() {
         status: String(r['狀態'])
       };
     }).filter(r=>r.date && r.sample && r.param);
+    cachedSummaries = res.summaries || {};
     setStatus(`已載入 ${cachedData.length} 筆　最後更新 ${new Date().toLocaleTimeString('zh-TW')}`);
     return true;
   } catch(e) {
@@ -370,6 +401,10 @@ function loadForm(prefill, isEdit) {
       if (inp.value !== '') onInput(inp);
     });
   }
+  summaryTouched = false;
+  const saved = cachedSummaries[date];
+  document.getElementById('summary-text').value = saved || '';
+  if (saved) summaryTouched = true; else regenSummary(false);
 }
 
 function onInput(inp) {
@@ -377,11 +412,14 @@ function onInput(inp) {
   const sid = `st_${inp.dataset.sk}_${inp.dataset.pk.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'_')}`;
   const cell = document.getElementById(sid);
   if (cell) cell.innerHTML = statusSpan(def, inp.value);
+  if (!summaryTouched) regenSummary(false);
 }
 
 function clearForm() {
   document.querySelectorAll('.val-inp').forEach(i=>i.value='');
   document.querySelectorAll('.st-td').forEach(c=>c.innerHTML='<span class="s-na">—</span>');
+  document.getElementById('summary-text').value = '';
+  summaryTouched = false;
 }
 
 async function saveEntry() {
@@ -408,6 +446,12 @@ async function saveEntry() {
       : { action, rows: JSON.stringify(rows) };
     const res = await jsonp(params);
     if (res.status !== 'ok') throw new Error(res.message);
+    const text = document.getElementById('summary-text').value.trim();
+    if (text || cachedSummaries[date]) {
+      if (text.length > 1500) throw new Error('數值已儲存，但摘要超過 1500 字無法儲存，請精簡後再按一次儲存');
+      const sr = await jsonp({ action: 'summary', date, text });
+      if (sr.status !== 'ok' || !sr.saved) throw new Error('數值已儲存，但摘要未儲存：請確認 Apps Script（Code.gs）已更新並重新部署');
+    }
     alert(editMode
       ? `💾 已更新 ${date} 共 ${rows.length} 筆資料`
       : `✅ 已儲存 ${date} 共 ${rows.length} 筆資料`);
@@ -541,6 +585,126 @@ function nextReport() {
 }
 
 // ══════════════════════════════════════
+//  取樣摘要
+// ══════════════════════════════════════
+const TOWERS = ['400RT(舊廠)','800RT(新廠)'];
+const SUM_PARAMS = [['M-鹼性度','鹼度',''],['鈣硬度','鈣硬度',''],['氯離子','氯離子',''],['導電度','導電度',' μS/cm']];
+const shortName = s => s.split('(')[0];
+const mdOf = d => { const [,m,dd] = d.split('-'); return `${+m}/${+dd}`; };
+
+function snapshotOf(date) {
+  const o = {};
+  cachedData.filter(r=>r.date===date).forEach(r => { (o[r.sample] ??= {})[r.param] = r.value; });
+  return o;
+}
+function formSnapshot() {
+  const o = {};
+  document.querySelectorAll('.val-inp').forEach(inp => {
+    const v = parseFloat(inp.value);
+    if (isNaN(v)) return;
+    const s = SAMPLES[SAMPLE_KEYS.indexOf(inp.dataset.sk)];
+    (o[s] ??= {})[inp.dataset.pk] = v;
+  });
+  return o;
+}
+
+function buildSummary(date, cur) {
+  cur = cur || snapshotOf(date);
+  const prev = [...new Set(cachedData.map(r=>r.date))].filter(d=>d<date).sort().reverse();
+  const p1 = prev[0] ? snapshotOf(prev[0]) : null;
+  const p2 = prev[1] ? snapshotOf(prev[1]) : null;
+  const defOf = k => PARAM_DEFS.find(p=>p.key===k);
+  const val = (snap,s,k) => (snap && snap[s] && snap[s][k] != null) ? snap[s][k] : null;
+  let anyOver = false, anyWatch = false;
+
+  // RSI 開頭
+  const rd = defOf('RSI');
+  const rsi = TOWERS.map(s=>({ s, now: val(cur,s,'RSI'), pre: val(p1,s,'RSI') })).filter(x=>x.now!=null);
+  const f1 = v => Number(v).toFixed(1);
+  let head = `依 ${date} 水質分析結果，`;
+  if (rsi.length) {
+    head += rsi.map((x,i)=> i ? `${shortName(x.s)} 為 ${f1(x.now)}` : `${shortName(x.s)} 萊氏安定指數（RSI）為 ${f1(x.now)}`).join('，');
+    const out = rsi.filter(x=>calcStatus(rd,x.now)!=='正常');
+    if (!out.length) head += `，${rsi.length>1?'均':''}位於控制基準（${rd.ctrl}）範圍內`;
+    else {
+      anyOver = true;
+      head += '，其中' + out.map(x=> x.now>rd.upper ? `${shortName(x.s)} 高於控制基準上限 ${rd.upper}` : `${shortName(x.s)} 低於控制基準下限 ${rd.lower}`).join('、');
+    }
+    const back = rsi.filter(x=>x.pre!=null && calcStatus(rd,x.pre)!=='正常' && calcStatus(rd,x.now)==='正常');
+    if (back.length) head += `；${back.map(x=>shortName(x.s)).join('、')} 較前次（${mdOf(prev[0])}）已回復至基準範圍內`;
+    head += '。';
+  } else head += '觀察重點如下。';
+
+  // 各塔觀察
+  const lines = TOWERS.map(s => {
+    if (!cur[s]) return null;
+    const drops=[], rises=[], cont=[], near=[], over=[];
+    SUM_PARAMS.forEach(([k,name,unit]) => {
+      const now = val(cur,s,k); if (now==null) return;
+      const pv = val(p1,s,k), pp = val(p2,s,k), d = defOf(k);
+      const label = `${name}（${now}${unit}）`;
+      if (d.upper!=null && now > d.upper) over.push(label);
+      else if (d.upper && now >= d.upper*0.8) near.push({ name, upper:d.upper, pct: Math.round(now/d.upper*100) });
+      if (pv) {
+        const ch = (now - pv) / pv;
+        if (pp!=null && now>pv && pv>pp) cont.push(label);
+        else if (ch >= 0.15) rises.push(label);
+        else if (ch <= -0.15) drops.push(label);
+      }
+    });
+    ['PH值'].forEach(k => {
+      const now = val(cur,s,k), d = defOf(k);
+      if (now!=null && calcStatus(d,now)!=='正常') over.push(`pH（${now}）${now<d.lower?'低於下限 '+d.lower:'高於上限 '+d.upper}`);
+    });
+    const seg = [];
+    if (over.length) { seg.push(`${over.join('、')}超出控制基準`); anyOver = true; }
+    if (drops.length) seg.push(`${drops.join('、')}${drops.length>1?'均':''}較前次大幅回落`);
+    if (rises.length) seg.push(`${rises.join('、')}${rises.length>1?'均':''}較前次大幅上升`);
+    if (cont.length) seg.push(`${cont.join('、')}呈持續上升之趨勢`);
+    if (near.length) {
+      seg.push(near.length>1
+        ? `${near.map(n=>n.name).join('、')}已分別達控制基準（${near.map(n=>n.name+'<'+n.upper).join('、')}）之${near.map(n=>n.pct+'%').join('、')}，仍在基準範圍內但已接近上限`
+        : `${near[0].name}已達控制基準（<${near[0].upper}）之${near[0].pct}%，仍在基準範圍內但已接近上限`);
+    }
+    if (near.length || cont.length) anyWatch = true;
+    if (!seg.length) seg.push(p1 ? '各項指標與前次相近，均在控制基準範圍內' : '各項指標均在控制基準範圍內');
+    return `・${shortName(s)}：${seg.join('；')}。`;
+  }).filter(Boolean);
+
+  const close = anyOver ? '超標項目將請委外廠商協助評估處置，並持續追蹤後續變化。'
+              : anyWatch ? '將持續觀察後續是否續升，如有超標疑慮將請委外廠商協助評估處置。'
+              : '整體水質控制穩定，將持續定期監測。';
+  return `冷卻水系統水質追蹤\n${head}\n\n觀察重點：\n${lines.join('\n')}\n${close}`;
+}
+
+function regenSummary(force) {
+  const box = document.getElementById('summary-text');
+  if (force && summaryTouched && box.value.trim() && !confirm('重新產生會覆蓋目前的摘要內容，確定嗎？')) return;
+  const date = document.getElementById('entry-date').value;
+  const cur = formSnapshot();
+  box.value = Object.keys(cur).length ? buildSummary(date, cur) : '';
+  summaryTouched = false;
+}
+
+function showDbSummary(date) {
+  const saved = cachedSummaries[date];
+  document.getElementById('db-sum-text').textContent = saved || buildSummary(date);
+  document.getElementById('db-sum-tag').textContent = saved ? '' : '系統自動產生・尚未儲存';
+  document.getElementById('db-sum-tag').style.display = saved ? 'none' : 'inline';
+}
+
+function copySummary() {
+  const t = document.getElementById('db-sum-text').textContent;
+  const done = () => setStatus('摘要已複製');
+  if (navigator.clipboard) navigator.clipboard.writeText(t).then(done, () => fallbackCopy(t, done));
+  else fallbackCopy(t, done);
+}
+function fallbackCopy(t, done) {
+  const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta);
+  ta.select(); document.execCommand('copy'); ta.remove(); done();
+}
+
+// ══════════════════════════════════════
 //  歷史列表
 // ══════════════════════════════════════
 function renderHistory() {
@@ -559,6 +723,7 @@ function renderHistory() {
           <span class="badge b-ok">正常 ${nOk}</span>
           ${nOver?`<span class="badge b-over">超標 ${nOver}</span>`:''}
           ${nLow?`<span class="badge b-low">低標 ${nLow}</span>`:''}
+          ${cachedSummaries[date]?'<span class="badge" style="background:#e0e7ff;color:#3730a3">📝 摘要</span>':''}
         </div>
       </div>
       <div style="display:flex;gap:6px">
@@ -621,6 +786,12 @@ async function renderDashboard() {
 
   document.getElementById('db-sub').textContent =
     `資料區間：${DATES[0]} ～ ${DATES[DATES.length-1]}　共 ${DATES.length} 次取樣`;
+
+  // 取樣摘要
+  const sumSel = document.getElementById('db-sum-sel');
+  sumSel.innerHTML = [...DATES].reverse().map(d=>`<option value="${d}">${d}${cachedSummaries[d]?'':'（未存摘要）'}</option>`).join('');
+  sumSel.onchange = () => showDbSummary(sumSel.value);
+  showDbSummary(sumSel.value);
 
   // KPI
   const valid = RAW.filter(r=>r.status!=='-');
